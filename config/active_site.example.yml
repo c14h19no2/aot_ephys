@@ -1,0 +1,3 @@
+# setup_aot copies this template only when active_site.yml is absent.
+# Paths are resolved relative to the selector's directory.
+site_file: site.local.yml

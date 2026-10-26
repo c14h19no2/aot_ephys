@@ -1,0 +1,23 @@
+# Local device selection and device-specific paths.
+/config/active_site.yml
+/config/site.*.yml
+/config/site.*.yaml
+!/config/site.example.yml
+# Subject labels may identify participants.
+/config/subjects.local.yml
+
+# Experiment data and derived video copies are stored independently of code.
+/outputs/
+/derived_media/
+
+# Operating system, Python, MATLAB editor, and temporary output files.
+.DS_Store
+._*
+__pycache__/
+*.py[cod]
+*.asv
+*.m~
+*.log
+/test-results/
+/matlab_crash_dump.*
+/java.log.*

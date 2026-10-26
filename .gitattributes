@@ -1,0 +1,15 @@
+* text=auto
+*.m text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+
+# Preserve imported schedules and answer keys byte-for-byte, including CRLF.
+config/runs/** -text
+
+*.wav binary
+*.jar binary
+*.pdf binary
+*.png binary

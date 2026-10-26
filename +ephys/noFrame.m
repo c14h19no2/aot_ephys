@@ -1,0 +1,6 @@
+function frame = noFrame(status)
+%NOFRAME Explicitly missing video identity for nonvideo framebuffers.
+frame = struct('texture_handle',NaN,'decoded_sequence',NaN, ...
+    'source_frame_index',NaN,'pts',NaN,'raw_pts',NaN, ...
+    'pts_offset',NaN,'status',string(status));
+end

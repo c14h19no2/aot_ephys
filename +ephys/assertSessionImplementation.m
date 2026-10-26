@@ -1,0 +1,13 @@
+function assertSessionImplementation()
+%ASSERTSESSIONIMPLEMENTATION Reject a stale flat class or another project copy.
+    expected = fullfile(fileparts(mfilename('fullpath')),'@Session','Session.m');
+    actual = which('ephys.Session');
+    assert(strcmpi(actual,expected),'ephys:SessionShadowed', ...
+        ['Wrong Session implementation: %s. Expected: %s. Remove the old ' ...
+        '+ephys/Session.m or another project copy from the path, then run ' ...
+        'clear classes; rehash before retrying.'],actual,expected);
+    definition = meta.class.fromName('ephys.Session');
+    names = string({definition.MethodList.Name});
+    assert(all(ismember(["onsetFlip","submitOnsetFlip"],names)), ...
+        'ephys:SessionCached','Session is cached from older code. Run clear classes; rehash before retrying.');
+end

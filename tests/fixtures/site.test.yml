@@ -1,0 +1,17 @@
+# Unit-test template only; testSite supplies temporary paths and placeholder files.
+# This profile must never be used for participant acquisition.
+protocol:
+  approved_for_acquisition: true
+display:
+  screen_index: 0
+  resolution_px: [1440, 900]
+  expected_refresh_hz: 60
+  full_screen: true
+  skip_sync_tests: false
+stimulus:
+  fixation:
+    dot_radius_px: 8
+    surround_diameter_px: 16
+markers:
+  wav:
+    output_channel: 2

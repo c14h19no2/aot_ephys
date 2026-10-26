@@ -1,0 +1,17 @@
+protocol:
+  video_pre_fixation_s: 0.5
+  video_duration_s: 1
+  video_post_fixation_s: 0.2
+display:
+  screen_index: 0
+  resolution_px: [800, 600]
+  expected_refresh_hz: 60
+  refresh_tolerance_hz: 10
+  full_screen: false
+  skip_sync_tests: false
+stimulus:
+  fixation:
+    dot_radius_px: 5
+    surround_diameter_px: 50
+eyelink:
+  enabled: false

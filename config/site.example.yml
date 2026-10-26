@@ -1,0 +1,27 @@
+protocol:
+  approved_for_acquisition: false
+playback:
+  # Set an explicit native-copy directory before running the video task.
+  native_media_root: null
+display:
+  screen_index: 1
+  resolution_px: [1920, 1080]
+  expected_refresh_hz: 120
+  full_screen: true
+  skip_sync_tests: false
+paths:
+  video_root: ''
+  picture_root: ''
+  output_root: ''
+stimulus:
+  fixation:
+    dot_radius_px: null
+    surround_diameter_px: null
+markers:
+  wav:
+    # One-based stereo output: 1 = left, 2 = right.
+    output_channel: 2
+    # null uses the system default audio output; set an index to select a device.
+    device_index: null
+    # A nonempty name is checked against the selected device before presentation.
+    device_name: ''

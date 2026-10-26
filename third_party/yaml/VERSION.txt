@@ -1,0 +1,3 @@
+MartinKoch123/yaml v1.6.0, Git commit 6d36b63, MIT license.
+Bundled SnakeYAML 1.30 has Apache 2.0 license in +yaml/snakeyaml/LICENSE-2.0.txt.
+Source: https://github.com/MartinKoch123/yaml/releases/tag/v1.6.0

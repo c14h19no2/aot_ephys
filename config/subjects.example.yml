@@ -1,0 +1,14 @@
+# Local map from subject labels to saved schedule sets. setup_aot copies this
+# file to subjects.local.yml, which Git ignores; edit only the local copy.
+#
+# schedule_set is the sub_NN number in config/runs/*/
+# experiment_settings_sub_NN_ses_SS_run_RR.yml. A numeric label always uses
+# its own number (subject 3 uses set 3) and needs no entry. Any other label
+# must be listed, otherwise the run stops before it starts.
+#
+# Labels appear in output folder names and manifests; prefer study codes to
+# real names. Write one entry per line, for example:
+#
+# subjects:
+#   - {label: patientname, schedule_set: 3}
+subjects: []

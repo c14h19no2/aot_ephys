@@ -1,0 +1,5 @@
+# Subject map fixture: a name using saved schedule set 1, and a number listed
+# with its own set (numbers may not use another set).
+subjects:
+  - {label: patientname, schedule_set: 1}
+  - {label: 7, schedule_set: 7}
