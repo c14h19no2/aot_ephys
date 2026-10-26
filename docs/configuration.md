@@ -102,7 +102,7 @@ protocol:
 | `playback.ffmpeg_path` / `ffprobe_path` | 仅离线准备副本及旧 `frames` 播放器使用；空值时自动查找。正式 `native` 运行忽略这些字段。 |
 | `playback.backend` | 默认 `native`：独立 PTB 句柄与滚动提前准备；`frames`：保留旧的完整 RGB 解码和纹理缓存播放器。 |
 | `playback.python_path` | 离线准备所用 Python；空值使用 `python3`。仅需 Python 标准库。 |
-| `playback.native_media_root` | 必须明确填写的原生播放副本目录；本机为 `/Users/dionysus/aot_movie/derived_media/native`。缺失、空值、`null` 或 `none` 会报错。 |
+| `playback.native_media_root` | 必须明确填写的原生播放副本目录；例如 `C:\path\to\aot_movie\derived_media\native`。缺失、空值、`null` 或 `none` 会报错。 |
 | `playback.native_buffer_s` | 原生 no-drop 解码缓冲容量，默认 `3 s`，必须覆盖完整视频时段。 |
 | `playback.native_prepare_timeout_s` | 完全取不到可绘制首帧时的等待上限，默认 `5 s`；预注视截止时间仅用于记录加载晚到。 |
 | `playback.native_disable_hw_decode` | 默认 `false`；本机 site 为 `true`，使用 PTB 官方软件视频解码选项。显示和 Flip 仍由 PTB/GPU 执行。 |
