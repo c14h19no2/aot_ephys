@@ -3,17 +3,26 @@
 按保存的 run 日程呈现正向／反向视频、blank 或记忆图片，同时输出命名的模拟 WAV trigger，
 并记录逐次 Flip、事件、响应和运行结束后的 QC。正式入口是 [run_aot_ephys.m](run_aot_ephys.m)。
 
-## 1. 安装
+## 1. 开始
+
+已配置好的电脑上，只需进入项目文件夹再运行：
 
 ```matlab
 cd('C:\path\to\aot_ephys');
-setup_aot('PsychtoolboxPath','C:\path\to\Psychtoolbox');
-% Psychtoolbox 已在 MATLAB path 时，直接 setup_aot();
+run_aot_ephys();
 ```
 
-setup 会从示例创建本机文件 `config/site.local.yml`、`config/active_site.yml` 和
-`config/subjects.local.yml`，已有文件保留。这些文件不入 Git。在 site 文件中填写视频目录、播放副本目录、
-输出目录、屏幕和音频设备。setup 不下载软件、不打开设备、不保存全局 MATLAB path。
+必须先 `cd` 到项目文件夹，MATLAB 才能找到 `run_aot_ephys` 和 `+ephys`；YAML 读取库会在读取配置时自动加入 path。
+
+只在以下情况运行 `setup_aot`：
+
+- **新电脑**：从示例创建本机文件 `config/site.local.yml`、`config/active_site.yml` 和
+  `config/subjects.local.yml`（已有文件保留，均不入 Git），然后在 site 文件中填写视频目录、
+  播放副本目录、输出目录、屏幕和音频设备。
+- **Psychtoolbox 不在 MATLAB path 上**：`setup_aot('PsychtoolboxPath','C:\path\to\Psychtoolbox')`
+  在本次 MATLAB 会话中加入 PTB。
+
+setup 只修改本次会话的 path，不下载软件、不打开设备、不保存全局 MATLAB path。
 
 ## 2. 运行
 

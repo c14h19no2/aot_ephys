@@ -1,17 +1,31 @@
 # Running the experiment
 
-## Set up a checkout
+## Start on a configured computer
 
-Open MATLAB in the project directory and run:
+Change MATLAB's current folder to the project and run the experiment:
 
 ```matlab
-setup_aot('PsychtoolboxPath','/path/to/Psychtoolbox');
+cd('C:\path\to\aot_ephys');
+run_aot_ephys();
 ```
 
-If Psychtoolbox is already on the MATLAB path, `setup_aot()` is enough.
-Setup adds only the active project and YAML dependency paths, creates missing
-local configuration files, and preserves existing site/selector edits. It does
-not open the display or audio device, convert media, or save the global path.
+The current folder is what lets MATLAB find `run_aot_ephys` and `+ephys`; the
+bundled YAML library is added to the path when configuration is first read.
+
+## Set up a new computer
+
+Run `setup_aot` only on a new computer, or when Psychtoolbox is not on the
+MATLAB path:
+
+```matlab
+setup_aot();                                            % New computer.
+setup_aot('PsychtoolboxPath','C:\path\to\Psychtoolbox'); % Also add PTB.
+```
+
+Setup adds the project and YAML paths for the current session only, creates
+missing local configuration files and preserves existing site/selector edits.
+It does not open the display or audio device, convert media, or save the
+global path.
 
 Edit `config/site.local.yml` for this computer:
 
