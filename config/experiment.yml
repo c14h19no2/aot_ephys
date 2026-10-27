@@ -84,7 +84,8 @@ markers:
     minimum_lead_s: 0.100
     minimum_low_s: 0.010
     completion_timeout_s: 2
-    # Reporting/QC reference only; exceeding it never aborts the run.
+    # Trial QC flags offsets more than this from the run's median offset;
+    # also the reporting reference. Exceeding it never aborts the run.
     max_sync_error_s: 0.002
 photodiode:
   enabled: false

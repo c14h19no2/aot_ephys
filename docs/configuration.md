@@ -123,7 +123,7 @@ protocol:
 | `markers.wav.output_channel` | 输出通道：`1` 为左声道，`2` 为右声道，默认 `2`；另一声道保持静音。可在当前 site YAML 覆盖。 |
 | `markers.wav.latency_class` | PsychPortAudio 延迟等级，默认 `2`；实际支持情况取决于设备。 |
 | `markers.wav.minimum_lead_s` / `minimum_low_s` | 默认 0.1 s 目标预约提前量及 0.01 s 波形间静音间隔；提前量不足只记录，波形重叠仍禁止。 |
-| `markers.wav.max_sync_error_s` | 默认 0.002 s；仅为偏移日志、PDF 和结束汇总的参考值，超出不会中止实验。 |
+| `markers.wav.max_sync_error_s` | 默认 0.002 s。trial QC 中，trigger 偏移与本 run 偏移中位数相差超过此值才计为同步问题，恒定偏移不计；同时是偏移日志、PDF 和结束汇总的参考值。超出不会中止实验。 |
 | `markers.wav.completion_timeout_s` | 默认 2 s；结束／关闭时等待波形完成的上限。 |
 | `eyelink.enabled` / `address` | 是否使用 EyeLink，以及设备地址。 |
 | `eyelink.calibration_type` | 校准图形，默认 `HV13`。 |

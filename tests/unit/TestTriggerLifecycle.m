@@ -133,9 +133,44 @@ classdef TestTriggerLifecycle < matlab.unittest.TestCase
             m.status="complete"; m.sync_status="out_of_tolerance";
             m.audio_start_getsecs=10.004788; m.audio_visual_delta_s=.004788;
             result=ephys.reconstructRecords(log.flipRecords(),log.eventRecords(),m,[],c);
-            tc.verifyEqual(result.trials.audio_sync_issue_count,1);
+            tc.verifyEqual(result.trials.audio_sync_issue_count,0);
             tc.verifyEqual(result.trials.max_abs_audio_visual_delta_s,.004788,'AbsTol',1e-12);
+            tc.verifyEqual(result.trials.max_abs_delta_from_run_median_s,0,'AbsTol',1e-12);
+            tc.verifyFalse(result.trials.software_marker_issue);
+            m.sync_status="missing_timestamp";
+            result=ephys.reconstructRecords(log.flipRecords(),log.eventRecords(),m,[],c);
+            tc.verifyEqual(result.trials.audio_sync_issue_count,1);
             tc.verifyTrue(result.trials.software_marker_issue);
+        end
+        function syncIssueIsDeviationFromRunMedianOffset(tc)
+            % Trials 1-4 share a constant +7.5 ms offset; trial 5 is 2.7 ms off it.
+            offsets=[.0074 .0076 .0073 .0075 .0102];
+            [flips,events,markers]=TestTriggerLifecycle.blankRun(offsets);
+            c=TestTriggerLifecycle.config();
+            result=ephys.reconstructRecords(flips,events,markers,[],c);
+            tc.verifyEqual(result.run_qc.audio_visual_median_s,.0075,'AbsTol',1e-12);
+            tc.verifyEqual([result.trials.audio_sync_issue_count],[0 0 0 0 1]);
+            tc.verifyEqual([result.trials.software_marker_issue],[false false false false true]);
+            tc.verifyEqual(result.run_qc.audio_sync_issue_count,1);
+            tc.verifyEqual([result.trials.max_abs_delta_from_run_median_s], ...
+                [.0001 .0001 .0002 0 .0027],'AbsTol',1e-12);
+            tc.verifyEqual([result.trials.max_abs_audio_visual_delta_s],offsets,'AbsTol',1e-12);
+            c.markers.wav.max_sync_error_s=.003;
+            result=ephys.reconstructRecords(flips,events,markers,[],c);
+            tc.verifyEqual(result.run_qc.audio_sync_issue_count,0);
+            [markers.audio_visual_delta_s]=deal(NaN);
+            result=ephys.reconstructRecords(flips,events,markers,[],c);
+            tc.verifyTrue(isnan(result.run_qc.audio_visual_median_s));
+            tc.verifyTrue(all(isnan([result.trials.max_abs_delta_from_run_median_s])));
+            tc.verifyEqual(result.run_qc.audio_sync_issue_count,0);
+        end
+        function simulatedMarkersAreNotJudgedAgainstTheRunMedian(tc)
+            [flips,events,markers]=TestTriggerLifecycle.blankRun([.0074 .0102]);
+            markers(1).status="dummy";
+            result=ephys.reconstructRecords(flips,events,markers,[],TestTriggerLifecycle.config());
+            tc.verifyEqual(result.run_qc.audio_visual_median_s,.0102,'AbsTol',1e-12);
+            tc.verifyEqual([result.trials.audio_sync_issue_count],[0 0]);
+            tc.verifyTrue(isnan(result.trials(1).max_abs_delta_from_run_median_s));
         end
     end
     methods (Static)
@@ -147,6 +182,28 @@ classdef TestTriggerLifecycle < matlab.unittest.TestCase
         end
         function value=raw(time)
             value=struct('vbl',time,'stimulus',time,'returned',time,'missed',0);
+        end
+        function [flips,events,markers]=blankRun(offsets)
+            % One blank trial per offset, each with an observed onset WAV.
+            log=ephys.TimelineLog(4,4);
+            markers=repmat(ephys.emptyMarker(),numel(offsets),1);
+            for k=1:numel(offsets)
+                onset=10*k; ctx=ephys.context("video",k,"blank");
+                on=log.flip(ctx,"blank",1,TestTriggerLifecycle.raw(onset),onset,ephys.noFrame("blank"),"off");
+                log.event(ctx,"blank_onset","blank",onset,on);
+                off=log.flip(ctx,"post_fixation",1,TestTriggerLifecycle.raw(onset+2.5),onset+2.5, ...
+                    ephys.noFrame("fixation"),"off");
+                log.event(ctx,"blank_offset","post_fixation",onset+2.5,off);
+                markers(k).trial_id=ctx.trial_id; markers(k).trial_nr=k;
+                markers(k).video_file="blank"; markers(k).event_type="blank_onset";
+                markers(k).event_id="blank-onset-"+k; markers(k).trigger_key="video_onset";
+                markers(k).waveform_file="TrigP16.wav"; markers(k).status="complete";
+                markers(k).associated_flip_getsecs=onset; markers(k).associated_flip_seq=2*k-1;
+                markers(k).audio_start_getsecs=onset+offsets(k);
+                markers(k).audio_visual_delta_s=offsets(k);
+                markers(k).sync_status="out_of_tolerance";
+            end
+            flips=log.flipRecords(); events=log.eventRecords();
         end
     end
 end

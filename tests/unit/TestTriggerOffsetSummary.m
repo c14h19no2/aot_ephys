@@ -29,6 +29,7 @@ classdef TestTriggerOffsetSummary < matlab.unittest.TestCase
             tc.verifyEqual(s.excluded_marker_count,6);
             tc.verifyEqual(s.failed_marker_count,1);
             tc.verifyEqual(s.outside_reference_count,1);
+            tc.verifyEqual(s.outside_median_reference_count,2);
             tc.verifyEqual(s.min_s,-.004,'AbsTol',1e-12);
             tc.verifyEqual(s.max_s,.001,'AbsTol',1e-12);
             tc.verifyEqual(s.mean_s,-.0015,'AbsTol',1e-12);
@@ -84,6 +85,18 @@ classdef TestTriggerOffsetSummary < matlab.unittest.TestCase
             tc.verifyEmpty(p);
             tc.verifyEqual(s.excluded_marker_count,1);
             tc.verifyEqual(s.outside_reference_count,0);
+            tc.verifyEqual(s.outside_median_reference_count,0);
+        end
+        function constantOffsetIsOnlyOutsideTheZeroReference(tc)
+            rows=repmat(ephys.emptyMarker(),4,1);
+            delta=[.0074 .0075 .0076 .0102];
+            for k=1:4
+                rows(k)=TestTriggerOffsetSummary.observation(k,k+delta(k));
+            end
+            s=ephys.triggerOffsetSummary(rows);
+            tc.verifyEqual(s.median_s,.00755,'AbsTol',1e-12);
+            tc.verifyEqual(s.outside_reference_count,4);
+            tc.verifyEqual(s.outside_median_reference_count,1);
         end
         function referenceLimitMustBeValid(tc)
             for limit={-1,NaN,Inf,[.001 .002],1i,".002"}
@@ -101,8 +114,8 @@ classdef TestTriggerOffsetSummary < matlab.unittest.TestCase
             tc.verifyTrue(contains(lines(1),'N=2'));
             tc.verifyTrue(contains(lines(1),'median=+2.894 ms'));
             tc.verifyTrue(contains(lines(2),'Range=[+1.000, +4.788] ms'));
-            tc.verifyTrue(contains(lines(3),'1/2 (50.0%)'));
-            tc.verifyTrue(contains(lines(3),'reference'));
+            tc.verifyTrue(contains(lines(3),'Beyond median +/-2 ms (trial QC rule): 0/2 (0.0%)'));
+            tc.verifyTrue(contains(lines(3),'beyond +/-2 ms of zero: 1/2'));
         end
         function consoleSummaryDoesNotInventEmptyStatistics(tc)
             summary=ephys.triggerOffsetSummary();

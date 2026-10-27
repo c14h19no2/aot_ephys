@@ -4,10 +4,13 @@ Every run writes `<run_id>_trigger_offsets.pdf` and prints a three-line summary
 such as:
 
 ```text
-Trigger offsets (audio - visual): N=86, median=+7.444 ms, SD=0.929 ms.
-Range=[+0.061, +10.738] ms; absolute-offset P95=7.519 ms.
-Beyond +/-2 ms reference: 85/86 (98.8%); software/driver estimates.
+Trigger offsets (audio - visual): N=86, median=+7.695 ms, SD=0.598 ms.
+Range=[+3.715, +7.763] ms; absolute-offset P95=7.746 ms; software/driver estimates.
+Beyond median +/-2 ms (trial QC rule): 2/86 (2.3%); beyond +/-2 ms of zero: 86/86.
 ```
+
+(A steady-mode run on the Windows test laptop. The two triggers beyond the
+median are run start and run end; see section 6.)
 
 This page explains where both numbers come from, how the trigger time is
 predicted, and what the report can and cannot tell you.
@@ -117,8 +120,8 @@ returned 0.02-0.03 ms later.
 estimate of when the first sample of the WAV leaves the sound card, based on
 its schedule and the latency the audio driver reports (10 ms for WASAPI on the
 test laptop). When playback starts on schedule, this equals the requested
-time. In the example run it matched the planned audio time to 0.000 ms for
-all 86 triggers. So the reported audio start is the plan; it does not measure
+time. In the held-mode run of section 5 it matched the planned audio time to
+0.000 ms for all 86 triggers. So the reported audio start is the plan; it does not measure
 the analog output.
 
 ## 5. Worked example
@@ -172,11 +175,13 @@ onset is early, and the picture appears at the predicted refresh or later.
 The logs alone cannot confirm this.
 
 The run-start and run-end triggers are single points with different values
-(+10.738 ms and +0.061 ms here). Their planned time is "now + at least 0.1 s
+(+10.738 ms and +0.061 ms in the held-mode run; +3.715 ms and +5.093 ms in
+the steady-mode run). Their planned time is "now + at least 0.1 s
 + 3 refreshes" rather than a point on the trial schedule, so their request
-falls at a different place in the refresh cycle: 12.46 ms and 1.64 ms before
-the predicted refresh. The same rule then gives a different offset. They are
-not drift.
+falls at a different place in the refresh cycle (in the held-mode run 12.46 ms
+and 1.64 ms before the predicted refresh). The same rule then gives a
+different offset. They are not drift, and the trial QC (section 7) does not
+include them.
 
 On a Mac with an external display (`submission_mode` =
 `macos_external_target`), the Flip is held back until the predicted onset
@@ -199,22 +204,45 @@ It **cannot** show:
   recording system;
 - therefore, the real delay between picture and trigger.
 
-The ±2 ms reference (`markers.wav.max_sync_error_s`) is for reporting only.
-Values outside it do not stop a run and, on the Windows test laptop, are
-expected. `sync_status` in the markers file is `within_tolerance` or
-`out_of_tolerance` relative to this reference.
+**Trial QC.** The ±2 ms reference (`markers.wav.max_sync_error_s`) applies
+to the spread of the offsets, not to their size. A trigger counts as a sync
+issue only when its offset differs from the **run's median offset** by more
+than 2 ms. A constant offset, such as the +7.4 ms on the Windows test laptop,
+is therefore not an issue: it is one fixed relation, which a photodiode
+measurement turns into a correction (section 9). A trial whose offset jumps
+away from the others is an issue.
+
+- The median is taken over the same triggers as the PDF (section 8),
+  including run start and run end. It is saved in the manifest as
+  `run_qc.audio_visual_median_s`. If no trigger has both timestamps, the
+  median is unknown and no offset is judged.
+- Per trial, `trial_qc.tsv` gives `audio_sync_issue_count`,
+  `max_abs_audio_visual_delta_s` (largest offset from zero) and
+  `max_abs_delta_from_run_median_s` (largest distance from the median).
+  `run_qc.audio_sync_issue_count` is the sum over trials.
+- A sync issue sets `software_marker_issue`, so the trial's `quality_state`
+  is `timing_anomaly_detected`. It never stops a run.
+- Run start and run end are not trials, so they are not in the trial QC,
+  but they are in the console and PDF counts.
+
+`sync_status` in the markers file is still `within_tolerance` or
+`out_of_tolerance` relative to zero, because the median is only known after
+the run. The trial QC does not use `out_of_tolerance`; only the failure
+states `failed`, `late` and `missing_timestamp` still count directly.
 
 ## 8. Reading the PDF
 
 The report has two pages with the same header and footer.
 
 **Header.** Run name and page title, then `N` (plotted triggers), median,
-SD, range, and how many lie beyond the ±2 ms reference.
+SD, range, how many lie more than 2 ms from the median (the trial QC rule,
+section 7) and how many lie beyond ±2 ms of zero.
 
 **Page 1: Offset over time.**
 x-axis: seconds from the run-start Flip (or from the first plotted Flip when
 there is no run-start pair). y-axis: audio start − visual Flip, in ms. The
-green band and dashed lines mark ±2 ms. Markers by event: video onset (blue
+green band and dashed lines mark ±2 ms around zero; the trial QC uses ±2 ms
+around the median instead. Markers by event: video onset (blue
 circles), blank onset (green squares), run start (orange diamond), run end
 (red cross), video offset (purple triangles, off by default). A large red
 circle marks an event that failed but still has both timestamps.

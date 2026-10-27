@@ -38,10 +38,10 @@ manifest 的 `startup_loading` 保存实际预加载文件、数量、纹理预�
 | `*_flips.tsv` | 每次 Flip 的 VBL／刺激 onset／返回时间、源帧、PTS、阶段、光电方块状态及 `frame_qc_flags`。 |
 | `*_events.tsv` | 指导语、准备、基线、刺激起止、响应和中止事件。 |
 | `*_markers.tsv` | 事件 ID、日志序号、命名 trigger／WAV、关联 Flip／输入、预约／音频时间、同步、取消及 `audio_qc_flags`。 |
-| `*_trial_qc.tsv` | 视频／记忆 trial 的时长、重复／跳帧、时间戳及 marker 检查。 |
+| `*_trial_qc.tsv` | 视频／记忆 trial 的时长、重复／跳帧、时间戳及 marker 检查；trigger 偏移按与本 run 中位数的差判定。 |
 | `*_resolved_config.json` | 本次实际合并后的配置。 |
 | `*_manifest.json` | 完成／中止状态、媒体哈希、日程、版本、显示信息、两端基线、WAV 协议、实际音频设备和波形元数据。 |
-| `*_trigger_offsets.pdf` | 自动生成的两页 PDF：偏移随时间的散点图、偏移直方图；含范围、中位数、标准差和超限次数。 |
+| `*_trigger_offsets.pdf` | 自动生成的两页 PDF：偏移随时间的散点图、偏移直方图；含范围、中位数、标准差，以及偏离中位数和偏离零超过参考值的次数。 |
 | `sources/` | 本次配置／日程／答案的原样副本及哈希。 |
 | `frame_maps/` | 按原视频名保存的帧映射 JSON，包含帧编号、PTS、内容校验和及解码来源。 |
 
@@ -79,10 +79,13 @@ manifest 的 `trigger_offset_report` 保存 PDF 文件名、统计结果和导�
 保存结束后，命令行会输出三行简要统计，例如：
 
 ```text
-Trigger offsets (audio - visual): N=86, median=+0.124 ms, SD=2.174 ms.
-Range=[-5.624, +8.027] ms; absolute-offset P95=5.759 ms.
-Beyond +/-2 ms reference: 14/86 (16.3%); software/driver estimates.
+Trigger offsets (audio - visual): N=86, median=+7.695 ms, SD=0.598 ms.
+Range=[+3.715, +7.763] ms; absolute-offset P95=7.746 ms; software/driver estimates.
+Beyond median +/-2 ms (trial QC rule): 2/86 (2.3%); beyond +/-2 ms of zero: 86/86.
 ```
+
+第三行先给出偏离本 run 中位数超过参考值的次数（trial QC 的判定规则，含 run 开始／结束），
+再给出偏离零超过参考值的次数。恒定偏移只影响后者。
 
 无有效音频／画面时间戳对时只输出两行无数据说明。设备打开失败、音频未启动／未完成等运行错误仍会报告。
 
@@ -98,6 +101,12 @@ Beyond +/-2 ms reference: 14/86 (16.3%); software/driver estimates.
   该次预约会停止，后续事件继续，不会补造已发出的 trigger。
 - `*_flips.tsv` 的 `frame_qc_flags` 和 manifest 的 `native_trials[].qc_issues` 记录帧问题。
   `*_trial_qc.tsv` 汇总这些异常及加载晚到秒数。
+- Trigger 偏移只在与本 run 偏移中位数相差超过 `markers.wav.max_sync_error_s`（默认 2 ms）时计为
+  同步问题（`audio_sync_issue_count`），该 trial 记为 `timing_anomaly_detected`；恒定偏移不计。
+  中位数取自与 PDF 相同的 trigger（含 run 开始／结束），保存在 `run_qc.audio_visual_median_s`；
+  每个 trial 另有 `max_abs_delta_from_run_median_s`。markers 文件中的 `sync_status` 仍相对于零偏移，
+  trial QC 不再使用 `out_of_tolerance`，只计 `failed`、`late` 和 `missing_timestamp`。
+  详见 [trigger_timing.md](trigger_timing.md) 第 7 节。
 - manifest 的 `status=complete` 仅表示实验流程已完成；应另外查看 `run_qc`。
   `post_run_qc.status=complete` 表示 QC 计算完成，其结果仍可能包含异常。
   QC 计算或 PDF 生成失败会记录错误，不会把完成的实验改为中止；原始日志和合并后的配置优先保存。

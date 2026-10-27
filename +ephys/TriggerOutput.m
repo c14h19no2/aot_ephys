@@ -229,6 +229,7 @@ classdef TriggerOutput < handle
                 else
                     % The configured value is a reporting reference, not an
                     % abort threshold. Preserve the backend completion state.
+                    % Post-run trial QC judges the offset against the run median.
                     row.sync_status="out_of_tolerance";
                 end
             end

@@ -40,9 +40,10 @@ The backend preloads waveforms, warms up silently, schedules playback before
 the intended visual onset from the logged Flip timeline, and subsequently
 associates actual Flip and reported audio start times. A late Flip does not
 move already scheduled audio. Preserve late playback, missing timestamp, XRun,
-cancellation and timeout failures. The configured 2 ms offset is a reporting
-reference only: offset magnitude does not stop a run, and the PDF and console
-summary report its distribution.
+cancellation and timeout failures. The configured 2 ms is a reference, not an
+abort threshold: the trial QC flags an offset only when it differs from the
+run's median offset by more than 2 ms, and the PDF and console summary report
+the distribution.
 
 On Q after run start, cancel future reservations and output run end once;
 wait for that last pulse to complete before closing audio. A cancelled row is

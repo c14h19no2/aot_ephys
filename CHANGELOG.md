@@ -1,5 +1,24 @@
 # Changes
 
+## 2026-10-27 — Trigger offset QC relative to the run median
+
+- The trial QC counts a trigger offset as a sync issue only when it differs
+  from the run's median offset by more than `markers.wav.max_sync_error_s`
+  (2 ms). A constant offset is no longer an issue; before, every offset
+  beyond ±2 ms of zero (`sync_status` `out_of_tolerance`) was. The failure
+  states `failed`, `late` and `missing_timestamp` still count. The median
+  uses the same triggers as the offset PDF, including run start and run end;
+  without any observed pair it is unknown and no offset is judged.
+- New fields: `trial_qc.tsv` `max_abs_delta_from_run_median_s`;
+  manifest `run_qc.audio_visual_median_s` and `run_qc.audio_sync_issue_count`.
+  `sync_status` in the markers file is unchanged (relative to zero).
+- The console summary and the PDF header also give the number of triggers
+  more than 2 ms from the median, beside the count beyond ±2 ms of zero.
+- Re-running the QC on the saved steady-mode run from the Windows test laptop
+  (median +7.695 ms): timing anomalies fall from 84 trials to 6, all with
+  missed deadlines; the largest trial distance from the median is 1.833 ms.
+- Verified 225 unit tests on MATLAB R2022b Update 10.
+
 ## 2026-10-27 — Steady onset mode
 
 - New setting `display.steady_flip` (video task), `true` by default in

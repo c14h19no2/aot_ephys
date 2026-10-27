@@ -7,6 +7,14 @@ if nargin < 5, config = struct(); end
 if nargin < 6, ttl = []; end
 flips = records(flips); events = records(events); markers = records(markers);
 ttl = records(ttl);
+% A trigger offset is judged against the run's own median offset, so a
+% constant audio/visual lag is not an issue; only the spread around it is.
+syncLimit = .002;
+if isfield(config,'markers') && isfield(config.markers,'wav') && ...
+        isfield(config.markers.wav,'max_sync_error_s')
+    syncLimit = config.markers.wav.max_sync_error_s;
+end
+runMedianDelta = runMedianOffset(markers);
 if ~isempty(ttl)
     assert(all(isfield(ttl,{'event_id','verified'})) && ...
         all([ttl.verified]) && (isfield(ttl,'trigger_key') || ...
@@ -28,6 +36,8 @@ if isempty(flips)
         'incomplete_count',0,'aborted_count',0,'software_valid_count',0, ...
         'debug_unvalidated_count',0, ...
         'interval_log_mismatch_count',0, ...
+        'audio_visual_median_s',runMedianDelta, ...
+        'audio_sync_issue_count',0, ...
         'unmatched_external_ttl_count',0, ...
         'unexpected_ttl_order_count',0));
     return;
@@ -121,15 +131,26 @@ for i = 1:numel(trialIds)
             end
         end
     end
+    % The marker's sync_status is relative to zero offset; only its failure
+    % states count here. Offsets count when they leave run median +/- limit.
     if isfield(m,'sync_status')
-        t.audio_sync_issue_count=sum(ismember(string({m.sync_status}), ...
-            ["failed","late","missing_timestamp","out_of_tolerance"]));
-        t.software_marker_issue=t.software_marker_issue || t.audio_sync_issue_count>0;
+        syncIssue=ismember(string({m.sync_status}), ...
+            ["failed","late","missing_timestamp"]);
+    else
+        syncIssue=false(1,numel(m));
     end
     if isfield(m,'audio_visual_delta_s') && ~isempty(m)
-        delta=[m.audio_visual_delta_s]; delta=delta(isfinite(delta));
-        if ~isempty(delta), t.max_abs_audio_visual_delta_s=max(abs(delta)); end
+        delta=[m.audio_visual_delta_s]; finite=isfinite(delta);
+        if any(finite), t.max_abs_audio_visual_delta_s=max(abs(delta(finite))); end
+        observed=finite & ismember(string({m.status}),["complete","failed"]);
+        if any(observed) && isfinite(runMedianDelta)
+            deviation=abs(delta-runMedianDelta);
+            t.max_abs_delta_from_run_median_s=max(deviation(observed));
+            syncIssue=syncIssue | (observed & deviation>syncLimit);
+        end
     end
+    t.audio_sync_issue_count=sum(syncIssue);
+    t.software_marker_issue=t.software_marker_issue || t.audio_sync_issue_count>0;
     if t.task == "video"
         vf = f(string({f.phase})=="video");
         t.blank = t.video_file == "blank";
@@ -437,6 +458,8 @@ result.run_qc = struct('trial_count',numel(trials), ...
     'native_qc_issue_count',sum([trials.native_qc_issue_count]), ...
     'preparation_overrun_count',sum([trials.preparation_overrun_s]>0), ...
     'interval_log_mismatch_count',sum([trials.interval_log_mismatch_count]), ...
+    'audio_visual_median_s',runMedianDelta, ...
+    'audio_sync_issue_count',sum([trials.audio_sync_issue_count]), ...
     'unmatched_external_ttl_count',0, ...
     'unexpected_ttl_order_count',0);
 if ~isempty(ttl)
@@ -463,6 +486,19 @@ function value = records(value)
 if istable(value), value = table2struct(value); end
 if isempty(value) && ~isstruct(value), value = struct([]); end
 value = value(:);
+end
+
+function value = runMedianOffset(markers)
+% Median over all observed audio/Flip pairs of the run, including run
+% boundaries; the same rows as the trigger offset summary. NaN if none.
+value = NaN;
+if isempty(markers) || ~all(isfield(markers,{'status','audio_visual_delta_s'}))
+    return;
+end
+delta = [markers.audio_visual_delta_s];
+observed = ismember(string({markers.status}),["complete","failed"]) & ...
+    isfinite(delta);
+if any(observed), value = median(delta(observed)); end
 end
 
 function t = emptyTrial()
@@ -498,6 +534,7 @@ t = struct('trial_id',"",'trial_nr',NaN,'task',"", ...
     'response_marker_request_lag_s',NaN, ...
     'response_marker_write_latency_s',NaN, ...
     'audio_sync_issue_count',0,'max_abs_audio_visual_delta_s',NaN, ...
+    'max_abs_delta_from_run_median_s',NaN, ...
     'audio_qc_issue_count',0,'max_audio_lead_shortfall_s',NaN, ...
     'software_marker_issue',false,'ttl_match_status',"", ...
     'quality_state',"");
