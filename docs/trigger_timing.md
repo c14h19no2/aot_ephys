@@ -43,7 +43,11 @@ reservation was made, not the Flip request.
 
 ## 2. How one video onset is scheduled
 
-Each video (and blank) trial starts with a pre-fixation Flip. From then on:
+Each video (and blank) trial starts with a pre-fixation Flip. The steps below
+describe held mode (`display.steady_flip: false`). Steady mode, the default,
+differs in steps 1, 4 and 5: fixation keeps being refreshed until the onset
+and the onset frame is drawn just before its Flip (see
+[section 10](#10-held-and-steady-onset-modes)). From the pre-fixation Flip on:
 
 1. **Draw the first frame.** The first movie frame (or the blank screen),
    fixation and optional photodiode patch are drawn into the back buffer. The
@@ -119,8 +123,9 @@ the analog output.
 
 ## 5. Worked example
 
-Trial 1 of `2026-10-27/sub-zhangsan_ses-01_run-01_task-video`, Windows test
-laptop. Times are in ms after the pre-fixation Flip (`lastVBL`).
+Trial 1 of a held-mode run of `sub-zhangsan_ses-01_run-01_task-video` on the
+Windows test laptop (2026-10-27, morning). Times are in ms after the
+pre-fixation Flip (`lastVBL`).
 
 | Step | Time (ms) | Log column |
 | --- | ---: | --- |
@@ -152,12 +157,15 @@ offset = (predicted onset − request) − (reported visual onset − request)
   refresh cycle. For videos and blanks it is about half a refresh (8.14 ms
   median), because the request is placed half a refresh before the planned
   onset.
-- **Reported visual onset − request**: after the static pre-fixation screen,
-  PTB reported the onset Flip as complete only 0.7 ms (median) after the
-  request time, not at the next refresh.
+- **Reported visual onset − request**: PTB reported the onset Flip as
+  complete only about 0.7 ms (median) after the request time, not at the next
+  refresh.
 
-So `8.14 − 0.70 ≈ 7.44 ms`, the median for all 84 video and blank onsets
-(SD 0.34 ms). The likely reason for the early report is the Windows desktop
+So `8.14 − 0.70 ≈ 7.44 ms`, the median for all 84 video and blank onsets of
+the held-mode run (SD 0.34 ms). A full steady-mode run on the same laptop the
+same evening gave the same picture: the onset Flip was reported 0.63 ms after
+its request, video onsets +7.71 ms (SD 0.33 ms), blanks +7.12 ms (SD 0.09 ms).
+The likely reason for the early report is the Windows desktop
 compositor: it can accept the new frame before the screen actually refreshes,
 and PTB's basic timestamp marks that acceptance. If so, the reported visual
 onset is early, and the picture appears at the predicted refresh or later.
@@ -248,6 +256,55 @@ Windows test laptop expect it to differ from the software offset in the PDF,
 possibly by about one refresh (16.7 ms), because of the compositor and triple
 buffering. See [hardware_validation.md](hardware_validation.md).
 
+## 10. Held and steady onset modes
+
+`display.steady_flip` (video task) chooses how each WAV-marked onset is
+presented. It is `true` in `config/experiment.yml`, so steady is the default;
+a site file can set `false`. Both modes use the same planned onset, Flip
+request rule, onset prediction and audio lead.
+
+| | Held (`steady_flip: false`) | Steady (`steady_flip: true`, default) |
+| --- | --- | --- |
+| Pre-fixation | One Flip at its onset; the next movie loads; then the screen is not refreshed again before the onset. | One Flip at its onset; the next movie loads; then fixation is refreshed on every grid slot up to the onset. |
+| Onset frame | Drawn right after loading and held in the back buffer for up to about 1 s. | Drawn after the last held refresh, about 3-4 ms before its Flip. |
+| Audio reservation | Just before the onset Flip call, 0.2-1 s ahead. | As soon as the onset slot is known, before the refresh stream, 0.2-1 s ahead. Reserving inside the stream would cost a refresh: one reservation takes 1-25 ms. |
+| Onset `submission_mode` | `direct` | `steady_direct` |
+| Manifest `display_timing.onset_flip_mode` | `held` | `steady` |
+
+The run-end pulse follows the mode: in steady mode the final baseline is
+refreshed every frame up to its end slot. The run-start pulse is presented the
+same way in both modes. Q during the refresh stream cancels the reserved
+pulse, as in held mode.
+
+**What the Windows test laptop logs showed** (8 trials of run 8 per mode,
+full screen, 2026-10-27). Held: software offset median +7.38 ms, SD 0.31 ms.
+Steady: the refresh stream was continuous in every trial after loading, and
+each onset was reported at the same point relative to its request as the
+refreshes just before it; median +7.68 ms, but one trial at −0.42 ms
+(SD 2.85 ms). Where a Flip is reported relative to its request changed between
+trials (about 1.2 ms or 8.9 ms after it), because it depends on where the
+request falls within the screen's real refresh cycle, which the software
+cannot see. A full steady-mode run of all 84 trials (same evening) had a
+continuous refresh stream in 80 trials and the same offsets as the full
+held-mode run (video onsets +7.71 vs +7.44 ms median, SD 0.33 vs 0.34 ms).
+The software offsets therefore cannot decide between the modes; the
+photodiode can.
+
+**Comparing both modes in one photodiode session**
+
+1. Enable the patch in the site file: `photodiode.enabled: true`,
+   `photodiode.approved_placement: true` and a corner rectangle, for example
+   `rect_px: [0, 0, 60, 60]`. It is white during every movie and black
+   otherwise, so each movie onset gives a rising edge. Blanks have no patch.
+2. Record the photodiode and the trigger output on two channels of the same
+   recording system.
+3. Run once with `display.steady_flip: false` and once with `true`, as
+   separate recordings (use another run or recording number, or Overwrite).
+   Check `display_timing.onset_flip_mode` in each manifest.
+4. For every movie onset, compute trigger edge − photodiode edge. Compare the
+   spread (SD, range, outliers) between the modes, and keep the mode with the
+   smaller spread. Its median is the constant to correct in analysis.
+
 ## Code references
 
 | Step | File |
@@ -255,6 +312,7 @@ buffering. See [hardware_validation.md](hardware_validation.md).
 | Request time | `+ephys/@Session/Session.m` (`computeFlipRequestTime`) |
 | Prediction | `+ephys/predictVisualOnset.m`, `+ephys/blankingDuration.m` |
 | Draw, reserve, Flip | `+ephys/@Session/onsetFlip.m`, `+ephys/submitPreparedOnset.m`, `+ephys/@Session/submitOnsetFlip.m` |
+| Steady onset mode | `+ephys/@Session/steadyOnsetFlip.m`, `+ephys/@Session/repeatFixation.m` |
 | Audio schedule and start time | `+ephys/WavTriggerBackend.m` (`submit`, `observedStart`) |
 | Association and `sync_status` | `+ephys/TriggerOutput.m` (`associate`, `checkSync`) |
 | Summary and PDF | `+ephys/triggerOffsetSummary.m`, `+ephys/printTriggerOffsetSummary.m`, `+ephys/writeTriggerOffsetReport.m` |

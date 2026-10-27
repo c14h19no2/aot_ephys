@@ -17,7 +17,12 @@ function runFixation(obj,phase,duration)
     event.planned_deadline_getsecs = plannedBaselineOffset;
     obj.Log.updateLastEvent(event);
     endMarker = [];
-    if phase == "final_fixation" && obj.Config.markers.run_boundary_enabled
+    if phase == "final_fixation" && obj.Config.markers.run_boundary_enabled && ...
+            obj.usesSteadyFlip()
+        % Refresh every frame up to the end slot, reserving run_end on the way.
+        [offsetFlip,endMarker,plannedBaselineOffset] = obj.steadyOnsetFlip( ...
+            ctx,phase,onsetFlip,phase+"_end","run_end",plannedBaselineOffset);
+    elseif phase == "final_fixation" && obj.Config.markers.run_boundary_enabled
         % Refresh the phase clock close to the reservation deadline,
         % instead of extrapolating from the start of a long baseline.
         audioLead = obj.Config.markers.wav.minimum_lead_s+2*obj.IFI;

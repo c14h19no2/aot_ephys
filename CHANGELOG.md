@@ -1,5 +1,26 @@
 # Changes
 
+## 2026-10-27 — Steady onset mode
+
+- New setting `display.steady_flip` (video task), `true` by default in
+  `config/experiment.yml`; a site file can set `false`. When `true`, fixation
+  is refreshed on every grid slot up to each WAV-marked onset (video, blank
+  and run end) instead of holding the drawn onset frame, so the display
+  pipeline is in the same continuous state at every onset. The WAV is
+  reserved as soon as the onset slot is known, before the refresh stream; the
+  onset uses the same prediction and Flip request rule as held mode
+  (`false`), which was the only behaviour before this change.
+- The manifest records `display_timing.onset_flip_mode` (`held` or `steady`);
+  steady onsets have `submission_mode` `steady_direct`.
+- On the Windows test laptop the refresh stream was continuous after loading
+  (80 of 84 trials in a full steady run), and the software offsets did not
+  separate the modes (video onsets +7.44 ms held vs +7.71 ms steady, SD
+  0.34 vs 0.33 ms). docs/trigger_timing.md describes how to compare them with
+  a photodiode.
+- Verified 222 unit tests on MATLAB R2022b Update 10, including steady-mode
+  Session runs on a simulated display (continuous refresh, onset slot, Q after
+  the reservation, run end and the Mac external-backend wait).
+
 ## 2026-10-26 — First version of aot_ephys
 
 New repository. The earlier development history is kept outside it.

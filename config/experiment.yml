@@ -25,6 +25,11 @@ display:
   # fraction of its fixed-grid refresh slots that were actually presented. A
   # lower value stops the run before the first trial; null disables the check.
   refresh_guard_min_fraction: 0.9
+  # Video task. true (default): fixation is refreshed every frame up to each
+  # WAV-marked onset, so the display pipeline is in the same state at every
+  # onset. false: each onset frame is drawn early and held until its timed
+  # Flip. A site file can override this. See docs/trigger_timing.md.
+  steady_flip: true
 stimulus:
   # Legacy compatibility field; fitting now uses the full window and source size.
   movie_canvas_px: [1536, 1080]

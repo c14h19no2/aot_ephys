@@ -80,6 +80,7 @@ Flip 时间轴提前预约，与画面 onset 保持固定关系。固定注视�
 
 每次运行生成的 `*_trigger_offsets.pdf` 比较的是两个软件估计时间（音频开始 − 画面 Flip），
 不是物理延迟；如何读这份 PDF 见 [docs/trigger_timing.md](docs/trigger_timing.md)。
+默认 `display.steady_flip: true`：每个 onset 前逐帧刷新画面；site 中设为 `false` 可改回首帧提前绘制并保持的方式。两种模式的光电二极管比较方法见同一文档。
 软件日志和测试通过都不能代替物理光电／电信号测量。
 
 ## 5. 测试

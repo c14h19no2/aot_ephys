@@ -2,12 +2,8 @@ function [row,marker,plannedOnset] = onsetFlip(obj,ctx,phase,eventType,plannedOn
 %ONSETFLIP Draw first, then reserve WAV and submit the same timed framebuffer.
 % The visible front buffer stays unchanged while the prepared Flip is pending.
 % No fixation Flip, movie fetch or drawing runs after the audio reservation.
-    diode = "off";
-    kind = "fixation";
-    if phase == "video"
-        kind = "video";
-        if obj.Config.photodiode.enabled, diode = "on"; end
-    end
+% steadyOnsetFlip is the display.steady_flip alternative.
+    [kind,diode] = obj.onsetFrameKind(phase);
     frame = obj.drawFrame(kind,diode);
     Screen('DrawingFinished',obj.Window);
     frameReady = GetSecs;
@@ -28,16 +24,9 @@ function [row,marker,plannedOnset] = onsetFlip(obj,ctx,phase,eventType,plannedOn
     predictedOnset = ephys.predictVisualOnset(obj.LastVBL,requestTime,obj.IFI,obj.VBLDuration);
     deferred = obj.usesDeferredOnset();
     [raw,marker] = ephys.submitPreparedOnset(requestTime,predictedOnset, ...
-        @reserve,@(when) obj.submitOnsetFlip(ctx,phase,when,predictedOnset,deferred),frameReady);
+        @(when) obj.scheduleOnsetMarker(ctx,eventType,when), ...
+        @(when) obj.submitOnsetFlip(ctx,phase,when,predictedOnset,deferred),frameReady);
     obj.LastVBL = raw.vbl;
     row = obj.Log.flip(ctx,phase,1,raw,requestTime,frame,diode);
     obj.Triggers.poll();
-
-    function value = reserve(when)
-        markerContext = ctx;
-        if eventType == "run_end", markerContext = obj.RunContext; end
-        value = obj.Triggers.schedule(eventType,markerContext,when);
-        if eventType == "run_end", obj.RunEndMarkerId = value.event_id; end
-    end
-
 end

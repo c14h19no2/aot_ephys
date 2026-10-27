@@ -321,10 +321,36 @@ classdef Session < handle
 
         [row,marker,plannedOnset] = onsetFlip(obj,ctx,phase,eventType,plannedOnset)
 
+        [row,marker,plannedOnset] = steadyOnsetFlip(obj,ctx,holdPhase,anchorFlip,phase,eventType,plannedOnset)
+
         raw = submitOnsetFlip(obj,ctx,phase,requestTime,predictedOnset,deferred)
 
         function value = usesDeferredOnset(obj)
             value = ismac && obj.DisplayTiming.external_display_backend;
+        end
+
+        function value = usesSteadyFlip(obj)
+            % display.steady_flip applies to the video task's WAV-marked onsets.
+            value = obj.Config.task_kind == "video" && ...
+                isfield(obj.Config.display,'steady_flip') && obj.Config.display.steady_flip;
+        end
+
+        function [kind,diode] = onsetFrameKind(obj,phase)
+            % A video onset shows its first frame; other boundaries show fixation.
+            kind = "fixation";
+            diode = "off";
+            if phase == "video"
+                kind = "video";
+                if obj.Config.photodiode.enabled, diode = "on"; end
+            end
+        end
+
+        function marker = scheduleOnsetMarker(obj,ctx,eventType,predictedOnset)
+            % Run-end markers belong to the run context and are tracked for endRun.
+            markerContext = ctx;
+            if eventType == "run_end", markerContext = obj.RunContext; end
+            marker = obj.Triggers.schedule(eventType,markerContext,predictedOnset);
+            if eventType == "run_end", obj.RunEndMarkerId = marker.event_id; end
         end
 
         memoryTrial(obj,trialNr,pictureName)

@@ -2,6 +2,8 @@ classdef TestFixedFixationRuntime < matlab.unittest.TestCase
     % Exercise the real Session refresh loop using an isolated clock/display.
     properties
         Folder
+        SteadyFlip = false % display.steady_flip for createJob; held unless a test sets it.
+        FinalSeconds = 0 % Final baseline duration for createJob.
     end
     methods (TestMethodSetup)
         function isolateDevices(tc)
@@ -194,6 +196,103 @@ classdef TestFixedFixationRuntime < matlab.unittest.TestCase
             tc.verifyEqual(fileread(fullfile(old,'fixed_fixation_manifest.json')),'kept');
         end
     end
+    methods (Test)
+        function heldModeKeepsOneFlipBeforeEachOnset(tc)
+            job=tc.createJob(.2,true);
+            job.run();
+            tc.verifyEqual(job.DisplayTiming.onset_flip_mode,"held");
+            rows=job.Log.flipRecords();
+            for trial=1:2
+                tc.verifyNumElements(rows([rows.trial_nr]==trial & [rows.phase]=="pre_fixation"),1);
+            end
+            onsets=rows([rows.phase]=="blank" & [rows.phase_flip_seq]==1);
+            tc.verifyEqual(unique([onsets.submission_mode]),"direct");
+        end
+        function steadyFlipRefreshesEveryFrameUpToEachOnset(tc)
+            tc.SteadyFlip=true;
+            job=tc.createJob(.2,true);
+            job.run();
+            tc.verifyEqual(job.DisplayTiming.onset_flip_mode,"steady");
+            rows=job.Log.flipRecords();
+            markers=job.Triggers.records();
+            onsets=markers([markers.event_type]=="blank_onset");
+            tc.verifyNumElements(onsets,2);
+            lead=job.Config.markers.wav.minimum_lead_s;
+            for m=onsets(:)'
+                onset=rows([rows.flip_seq]==m.associated_flip_seq);
+                held=rows([rows.trial_nr]==onset.trial_nr & [rows.phase]=="pre_fixation");
+                anchor=held(1).stimulus_onset_getsecs;
+                slot=round(job.Config.protocol.video_pre_fixation_s/job.IFI);
+                % Every refresh between the pre-fixation onset and the onset
+                % slot was flipped, and the onset landed on its slot.
+                tc.verifyEqual([held(2:end).refresh_index],1:slot-1);
+                tc.verifyEqual(onset.stimulus_onset_getsecs,anchor+slot*job.IFI,'AbsTol',1e-9);
+                tc.verifyEqual(onset.submission_mode,"steady_direct");
+                % The WAV targets that slot at the usual lead, and refreshing
+                % continued after it was reserved.
+                tc.verifyEqual(m.planned_audio_getsecs,onset.stimulus_onset_getsecs,'AbsTol',1e-9);
+                tc.verifyGreaterThanOrEqual(m.planned_audio_getsecs-m.write_getsecs,lead);
+                tc.verifyTrue(any([held.flip_submit_getsecs]>m.write_getsecs));
+            end
+        end
+        function quitDuringSteadyRefreshCancelsTheReservedOnset(tc)
+            tc.SteadyFlip=true;
+            TestFixedFixationRuntime.sim('set','quitWhenReserved',true);
+            job=tc.createJob(.2,true);
+            tc.verifyError(@() job.run(),'ephys:UserAbort');
+            job.stopPresentation();
+            markers=job.Triggers.records();
+            onset=markers([markers.event_type]=="blank_onset");
+            tc.verifyNumElements(onset,1);
+            tc.verifyEqual(onset.status,"cancelled");
+            rows=job.Log.flipRecords();
+            tc.verifyFalse(any([rows.phase]=="blank"));
+        end
+        function steadyFlipRefreshesTheFinalBaselineUpToRunEnd(tc)
+            tc.SteadyFlip=true;
+            tc.FinalSeconds=.2;
+            job=tc.createJob(.2,true);
+            job.run();
+            rows=job.Log.flipRecords();
+            held=rows([rows.phase]=="final_fixation");
+            endFlip=rows([rows.phase]=="final_fixation_end");
+            tc.verifyNumElements(endFlip,1);
+            slot=round(.2/job.IFI);
+            tc.verifyEqual([held(2:end).refresh_index],1:slot-1);
+            tc.verifyEqual(endFlip.stimulus_onset_getsecs, ...
+                held(1).stimulus_onset_getsecs+slot*job.IFI,'AbsTol',1e-9);
+            tc.verifyEqual(endFlip.submission_mode,"steady_direct");
+            markers=job.Triggers.records();
+            runEnd=markers([markers.event_type]=="run_end");
+            tc.verifyNumElements(runEnd,1);
+            tc.verifyEqual(runEnd.associated_flip_seq,endFlip.flip_seq);
+            tc.verifyEqual(runEnd.planned_audio_getsecs,endFlip.stimulus_onset_getsecs,'AbsTol',1e-9);
+        end
+        function steadyFlipKeepsTheMacExternalTargetWait(tc)
+            % The Mac external-backend submission policy applies unchanged.
+            TestFixedFixationRuntime.sim('set','macBackend',true);
+            TestFixedFixationRuntime.sim('set','imagingMode',2^20);
+            tc.SteadyFlip=true;
+            job=tc.createJob(.2,true);
+            job.run();
+            rows=job.Log.flipRecords();
+            onsets=rows([rows.phase]=="blank" & [rows.phase_flip_seq]==1);
+            tc.verifyEqual(unique([onsets.submission_mode]),"steady_macos_external_target");
+            held=rows([rows.trial_nr]==1 & [rows.phase]=="pre_fixation");
+            tc.verifyTrue(all([held(2:end).submission_mode]=="fixed_fixation_macos_target"));
+            slot=round(job.Config.protocol.video_pre_fixation_s/job.IFI);
+            tc.verifyEqual(onsets(1).stimulus_onset_getsecs, ...
+                held(1).stimulus_onset_getsecs+slot*job.IFI,'AbsTol',1e-9);
+        end
+        function steadyFlipSettingIsOnByDefaultAndLogical(tc)
+            shared=ephys.readYaml(fullfile(ephys.projectRoot(),'config','experiment.yml'));
+            tc.verifyEqual(shared.display.steady_flip,true);
+            schedule=fullfile(ephys.projectRoot(),'config','runs','debug_blank.yml');
+            [c,~]=ephys.loadConfig("video",schedule,testSite(),true,"");
+            c.display.steady_flip=1;
+            tc.verifyError(@() ephys.validateConfig(c),'ephys:SteadyFlipConfig');
+        end
+    end
     methods (Access=private)
         function writeStub(tc,name,lines)
             fid=fopen(fullfile(tc.Folder,char(name+".m")),'w');
@@ -217,7 +316,8 @@ classdef TestFixedFixationRuntime < matlab.unittest.TestCase
             c.markers.fixation_onset_enabled=false;
             c.playback.startup_preload_movies=0;
             c.protocol.video_initial_fixation_s=initialSeconds;
-            c.protocol.video_final_fixation_s=0;
+            c.protocol.video_final_fixation_s=tc.FinalSeconds;
+            c.display.steady_flip=tc.SteadyFlip;
             c.protocol.video_pre_fixation_s=.2;
             c.protocol.video_duration_s=.2;
             c.protocol.video_post_fixation_s=.02;
@@ -251,6 +351,12 @@ classdef TestFixedFixationRuntime < matlab.unittest.TestCase
                 key="q"; time=state.time;
                 TestFixedFixationRuntime.sim('set','quitAt',Inf);
             end
+            if state.quitWhenReserved && job.Triggers.Count>0 && ...
+                    any([job.Triggers.records().event_type]=="blank_onset")
+                % Q while a reserved onset is still in the future.
+                key="q"; time=state.time;
+                TestFixedFixationRuntime.sim('set','quitWhenReserved',false);
+            end
         end
         function clearStubs()
             clear Screen GetSecs WaitSecs HideCursor ShowCursor Priority ismac DrawFormattedText
@@ -262,7 +368,8 @@ classdef TestFixedFixationRuntime < matlab.unittest.TestCase
                     state=struct('time',10,'ifi',1/60,'preference',0, ...
                         'windows',[],'requests',[],'draws',0, ...
                         'stallOnDraw',0,'stallSeconds',0,'stallEachDraw',0,'quitAt',Inf, ...
-                        'imagingMode',0,'waitOvershoot',0,'macBackend',false,'spaceSent',false);
+                        'imagingMode',0,'waitOvershoot',0,'macBackend',false,'spaceSent',false, ...
+                        'quitWhenReserved',false);
                 case "state"
                     varargout={state};
                 case "set"

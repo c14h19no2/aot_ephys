@@ -61,6 +61,9 @@ function open(obj)
     obj.VBLDuration = ephys.blankingDuration(windowInfo,obj.IFI);
     obj.DisplayTiming.onset_prediction_basis = "last logged Flip VBL timestamp";
     obj.DisplayTiming.vbl_duration_s = obj.VBLDuration;
+    % "held": onset frame drawn early and held; "steady": refreshed until onset.
+    obj.DisplayTiming.onset_flip_mode = "held";
+    if obj.usesSteadyFlip(), obj.DisplayTiming.onset_flip_mode = "steady"; end
     obj.DisplayTiming.expected_refresh_hz = c.display.expected_refresh_hz;
     obj.DisplayTiming.refresh_mismatch_hz = 1/obj.IFI-c.display.expected_refresh_hz;
     obj.DisplayTiming.refresh_outside_reference = ...

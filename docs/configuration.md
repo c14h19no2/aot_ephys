@@ -92,6 +92,7 @@ protocol:
 | `display.full_screen` | 是否全屏；Debug 改为窗口。 |
 | `display.skip_sync_tests` | PTB 同步检查跳过开关；正式运行保持 `false`。 |
 | `display.refresh_guard_min_fraction` | 初始基线结束时的刷新检查：基线固定网格刷新槽中实际提交的最低比例，默认 `0.9`。低于该值时在第一个 trial 之前停止运行，按中止保存；基线不足 1 s 时只记录、不判定；`null` 关闭判定。 |
+| `display.steady_flip` | 视频任务的 onset 呈现方式，默认 `true`：在每个带 WAV 的 onset 之前逐帧刷新注视画面直到 onset 所在刷新，使每个 onset 前显示管线状态相同。site 中设为 `false` 时改为首帧提前绘制并保持到定时 Flip。两种模式的比较方法见 [trigger_timing.md](trigger_timing.md#10-held-and-steady-onset-modes)。 |
 | `input_device_index` | PTB 键盘编号；`-1` 使用默认设备。 |
 | `paths.video_root` / `picture_root` | 日程中原始 MP4／PNG 所在目录。 |
 | `paths.output_root` | 每次记录的输出父目录；`run_aot_ephys` 在其下按采集日期 `yyyy-mm-dd` 建子文件夹。 |

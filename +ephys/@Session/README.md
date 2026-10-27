@@ -29,6 +29,7 @@ in the same class file.
 | [`runFixation.m`](runFixation.m) | Present an initial or final baseline with explicit boundary Flips. |
 | [`repeatFixation.m`](repeatFixation.m), [`fixationRefresh.m`](fixationRefresh.m) | Schedule static-phase refreshes on the original onset + n × IFI grid, skip expired slots and record actual timing. |
 | [`onsetFlip.m`](onsetFlip.m) | Draw a video/blank/run boundary before consecutive WAV reservation and timed Flip submission. |
+| [`steadyOnsetFlip.m`](steadyOnsetFlip.m) | `display.steady_flip`: reserve the WAV, refresh fixation on every slot up to the onset, then draw and flip the onset on its slot. |
 | [`submitOnsetFlip.m`](submitOnsetFlip.m) | Invoke Screen from a non-nested workspace and record submission/return timing. |
 | [`flip.m`](flip.m) | Submit a prepared framebuffer and record PTB timestamps. |
 | [`nextKey.m`](nextKey.m) | Read a timestamped key event or debug input callback. |
@@ -43,6 +44,13 @@ in the same class file.
   both original and native files. It never resolves or launches FFmpeg/ffprobe;
   offline preparation and the legacy frames backend retain those dependencies.
 - `plannedVideoOnset` and `plannedVideoOffset` are desired visual boundaries.
+- With `display.steady_flip` (video task; on by default), `steadyOnsetFlip()` replaces
+  `onsetFlip()` for video/blank onsets and the run end. It predicts and
+  reserves the WAV as soon as the onset slot is known, then refreshes fixation
+  on every grid slot before it (`repeatFixation`), draws the onset frame after
+  the last refresh and submits it through `submitOnsetFlip`. The reservation
+  stays outside the refresh stream because it takes 1-25 ms. The Mac external
+  guard applies unchanged; `submission_mode` gains a `steady_` prefix.
 - `onsetFlip()` draws the first frame and calls `DrawingFinished` before
   predicting/reserving WAV onset. `submitPreparedOnset` then dispatches the
   frozen visual request immediately after audio scheduling. No fixation

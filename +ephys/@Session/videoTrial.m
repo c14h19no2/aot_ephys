@@ -43,7 +43,7 @@ function videoTrial(obj,trialNr,movieName,preparedContext)
         % Finish blocking preparation before the audio reservation
         % deadline, leaving additional time for drawing the first frame.
         obj.prepareAhead(context,plannedVideoOnset-config.markers.wav.minimum_lead_s-2*obj.IFI);
-        if obj.usesDeferredOnset()
+        if obj.usesDeferredOnset() && ~obj.usesSteadyFlip()
             % Renew the macOS external sink's refresh anchor before drawing.
             audioLead = config.markers.wav.minimum_lead_s+2*obj.IFI;
             obj.repeatFixation(context,"pre_fixation",preFixationFlip, ...
@@ -52,9 +52,11 @@ function videoTrial(obj,trialNr,movieName,preparedContext)
         % Ordinary backends reserve as soon as drawing/preparation permits;
         % do not burn the available lead in a nominal-refresh waiting loop.
     end
-    % Draw source frame zero (or blank) before reserving the common onset.
-    % The remaining pre-fixation holds the front buffer; no reference Flip or
-    % drawing command separates the WAV reservation from the prepared Flip.
+    % Default: draw source frame zero (or blank) before reserving the common
+    % onset. The remaining pre-fixation holds the front buffer; no reference
+    % Flip or drawing command separates the WAV reservation from the prepared
+    % Flip. display.steady_flip instead refreshes fixation every frame up to
+    % the onset slot (steadyOnsetFlip).
     obj.checkQuit(context,"pre_fixation_end");
     eventType = "video_onset";
     phase = "video";
@@ -63,8 +65,13 @@ function videoTrial(obj,trialNr,movieName,preparedContext)
         eventType = "blank_onset";
         if ~config.markers.blank_enabled, eventType = ""; end
     end
-    [onsetFlip,onsetMarker,plannedVideoOnset] = obj.onsetFlip( ...
-        context,phase,eventType,plannedVideoOnset);
+    if obj.usesSteadyFlip() && preFixationDuration > 0
+        [onsetFlip,onsetMarker,plannedVideoOnset] = obj.steadyOnsetFlip( ...
+            context,"pre_fixation",preFixationFlip,phase,eventType,plannedVideoOnset);
+    else
+        [onsetFlip,onsetMarker,plannedVideoOnset] = obj.onsetFlip( ...
+            context,phase,eventType,plannedVideoOnset);
+    end
     if isBlank
         event = obj.Log.event(context,"blank_onset","blank", ...
             onsetFlip.stimulus_onset_getsecs,onsetFlip);
