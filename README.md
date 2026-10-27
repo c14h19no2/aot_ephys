@@ -78,6 +78,8 @@ Flip 时间轴提前预约，与画面 onset 保持固定关系。固定注视�
   Flip 时间戳晚约一帧。正式采集前须用光电二极管与 trigger 在同一采集时钟上记录，确认延迟恒定，
   见 [硬件验证](docs/hardware_validation.md)。
 
+每次运行生成的 `*_trigger_offsets.pdf` 比较的是两个软件估计时间（音频开始 − 画面 Flip），
+不是物理延迟；如何读这份 PDF 见 [docs/trigger_timing.md](docs/trigger_timing.md)。
 软件日志和测试通过都不能代替物理光电／电信号测量。
 
 ## 5. 测试

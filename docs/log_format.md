@@ -75,6 +75,7 @@ PDF 在实验呈现结束、原始日志保存后自动导出，无需额外命�
 没有有效时间戳对时，PDF 会注明无数据，不会填入零偏移。图中时间均为软件／驱动估计，不代表物理光电校准。
 manifest 的 `trigger_offset_report` 保存 PDF 文件名、统计结果和导出状态；导出失败会警告，原始日志仍会保留。
 导出保留画布内的页边距，不传入仅较新 MATLAB 才支持的 `Padding` 选项。
+两个时间各自如何得到、"predicted onset" 如何计算、如何读这份 PDF，见 [trigger_timing.md](trigger_timing.md)。
 保存结束后，命令行会输出三行简要统计，例如：
 
 ```text
