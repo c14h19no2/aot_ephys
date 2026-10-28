@@ -205,6 +205,46 @@ classdef TestWavTriggers < matlab.unittest.TestCase
             s.wav.device_name='missing device'; f2=FakeWavAudio(); b2=TestWavTriggers.backend(f2); b2.configure(s);
             tc.verifyError(@() b2.open(),'ephys:TriggerDevice'); tc.verifyEmpty(f2.Handles);
         end
+        function pollQueuesOnlyChangedReceiptsButReadsStatusEveryTime(tc)
+            f=FakeWavAudio(); b=TestWavTriggers.backend(f);
+            b.configure(TestWavTriggers.settings()); b.open();
+            cleanup=onCleanup(@() b.close()); %#ok<NASGU>
+            statusCalls=@() sum(cellfun(@(c) strcmp(c{1},'GetStatus'),f.Calls));
+            b.submit("video_onset","future",10.2);
+            first=b.poll(); tc.verifyNumElements(first,1);
+            tc.verifyEqual(first.audio_xruns,0);
+            before=statusCalls();
+            for k=1:5, tc.verifyEmpty(b.poll()); end
+            % Master and slave status are still read on every poll.
+            tc.verifyEqual(statusCalls()-before,10);
+            f.XRuns=1; r=b.poll();
+            tc.verifyEqual(r.audio_xruns,1); tc.verifyEqual(r.audio_qc_flags,"audio_underrun");
+            tc.verifyEmpty(b.poll());
+            f.Now=10.2005; r=b.poll();
+            tc.verifyEqual(r.status,"queued"); tc.verifyEqual(r.audio_start_getsecs,10.2,'AbsTol',1e-12);
+            tc.verifyEmpty(b.poll());
+            f.Now=10.21; r=b.poll();
+            tc.verifyEqual(r.status,"complete"); tc.verifyTrue(isfinite(r.completion_getsecs));
+            tc.verifyEmpty(b.Pending); tc.verifyEmpty(b.poll());
+        end
+        function skippedPollsLeaveTheSameMarkerRow(tc)
+            [o,f]=TestWavTriggers.output(); cleanup=onCleanup(@() delete(o)); %#ok<NASGU>
+            r=o.schedule("video_onset",ephys.context("video",1,"movie_fw.mp4"),10.2);
+            o.poll(); once=o.records();
+            for k=1:20, o.poll(); end
+            tc.verifyEqual(o.records(),once);
+            f.Now=10.2005;
+            o.associate(r.event_id,struct('seq',3,'stimulus',10.195));
+            for k=1:20, o.poll(); end
+            saved=o.records();
+            tc.verifyEqual(saved.audio_start_getsecs,10.2,'AbsTol',1e-12);
+            tc.verifyEqual(saved.associated_flip_getsecs,10.195);
+            tc.verifyEqual(saved.audio_visual_delta_s,.005,'AbsTol',1e-12);
+            tc.verifyEqual(saved.sync_status,"out_of_tolerance");
+            f.Now=10.21; o.close();
+            tc.verifyEqual(o.records().status,"complete");
+            tc.verifyEqual(o.CloseError,"");
+        end
         function unobservedStartRetainsFailureAndPollWorksAfterClosing(tc)
             f=FakeWavAudio(); f.NeverStart=true;
             b=TestWavTriggers.backend(f); b.configure(TestWavTriggers.settings()); b.open();

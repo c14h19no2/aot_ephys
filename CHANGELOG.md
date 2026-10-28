@@ -1,5 +1,23 @@
 # Changes
 
+## 2026-10-27 — Cheaper trigger polling
+
+- `WavTriggerBackend` still reads the master and slave status on every poll,
+  but passes a receipt to the marker table only when it changed. Before, a
+  pending reservation rewrote its marker row on every poll, about four times
+  per refresh, through the whole pre-fixation and final fixation. Polling also
+  no longer rebuilds the empty receipt template. Marker rows, timeouts,
+  completion and Q cancellation are unchanged.
+- In the last run on the Windows test laptop, refreshes with a pending
+  reservation took a median 8.5-8.9 ms of MATLAB work against 3.1-3.3 ms
+  without one. Benchmark of `TriggerOutput.poll` with a fake audio device on
+  the same laptop: 544 to 157 us per poll with a pending reservation (about
+  103 us of it is the fake device; a real status call takes about 17 us), and
+  47 to 6 us per poll without one.
+- In the next full run on that laptop, median MATLAB work per refresh fell
+  from 8.5 to 4.5 ms in pre-fixation and from 8.9 to 3.9 ms in final fixation.
+- Verified 227 unit tests on MATLAB R2022b Update 10.
+
 ## 2026-10-27 — Trigger offset QC relative to the run median
 
 - The trial QC counts a trigger offset as a sync issue only when it differs

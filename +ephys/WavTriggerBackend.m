@@ -111,7 +111,8 @@ classdef WavTriggerBackend < ephys.TriggerBackend
         end
         function receipts=poll(obj)
             obj.advance(); receipts=obj.Completed;
-            obj.Completed=repmat(ephys.emptyTriggerReceipt(),0,1);
+            % Empty the queue without rebuilding the receipt template.
+            obj.Completed=receipts([],1);
         end
         function receipt=cancel(obj,eventId)
             obj.advance();
@@ -250,9 +251,18 @@ classdef WavTriggerBackend < ephys.TriggerBackend
                     obj.AudioFcn('Stop',p.slave,0,0);
                     r.completion_getsecs=obj.ClockFcn(); done(k)=true;
                 end
-                p.receipt=r; obj.Pending(k)=p;
-                % Snapshot every poll so a Flip association can be checked while active.
-                obj.enqueue(r);
+                % Status is read on every poll, but only a changed receipt is
+                % queued for merging. An unchanged one is already in the
+                % marker table, so a Flip association still sees the latest state.
+                % Until it is done, a reservation changes only these fields.
+                old=p.receipt;
+                changed=done(k) || r.audio_qc_flags~=old.audio_qc_flags || ...
+                    ~isequaln([r.audio_start_getsecs r.audio_stop_getsecs r.audio_xruns], ...
+                    [old.audio_start_getsecs old.audio_stop_getsecs old.audio_xruns]);
+                if changed
+                    p.receipt=r; obj.Pending(k)=p;
+                    obj.enqueue(r);
+                end
             end
             obj.Pending(done)=[];
         end

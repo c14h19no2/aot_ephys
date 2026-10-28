@@ -151,6 +151,9 @@ identity stays NaN. Loading past a fixation deadline is recorded and may extend
 fixation. The first-frame timeout still bounds the absence of a drawable frame.
 
 `WavTriggerBackend` records lead shortfalls and underruns in `audio_qc_flags`.
+It reads the master and slave status on every poll but passes a receipt to the
+marker table only when the receipt changed, so a pending reservation does not
+rewrite its marker row on every refresh.
 An unobserved start/completion stops that reservation and records a failed,
 QC-only receipt; subsequent events continue. Actual device-call errors still
 propagate. `TimelineLog` and `TriggerOutput` grow their buffers when needed.
