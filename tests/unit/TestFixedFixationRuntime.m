@@ -99,6 +99,9 @@ classdef TestFixedFixationRuntime < matlab.unittest.TestCase
         function shortBaselineRecordsTheGuardWithoutDecision(tc)
             job=tc.createJob();
             job.run();
+            % Refresh calibration: 100 samples, 0.2 ms spread target, 10 s timeout.
+            state=TestFixedFixationRuntime.sim("state");
+            tc.verifyEqual(state.flipIntervalArguments,{100,0.0002,10});
             tc.verifyEqual(job.RefreshGuard.status,"not_evaluated");
             events=job.Log.Events(1:job.Log.EventCount);
             guard=events([events.event_type]=="refresh_guard");
@@ -399,6 +402,7 @@ classdef TestFixedFixationRuntime < matlab.unittest.TestCase
                             varargout={struct('ImagingMode',state.imagingMode,'SpecialFlags',0, ...
                                 'LastVBLTime',-1)};
                         case "getflipinterval"
+                            state.flipIntervalArguments=varargin(3:end);
                             varargout={state.ifi,100,0};
                         case "fillrect"
                             state.draws=state.draws+1;

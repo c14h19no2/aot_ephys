@@ -32,7 +32,7 @@ clock for audio and video. Log columns end in `_getsecs`.
 
 | Term | Meaning | Where it is logged |
 | --- | --- | --- |
-| Refresh interval (IFI) | Time between screen refreshes, measured by PTB when the window opens (16.6635 ms in the example run, about 60 Hz). | manifest `scheduling_ifi_s` |
+| Refresh interval (IFI) | Time between screen refreshes, measured by PTB when the window opens: at least 100 samples, until their spread is below 0.2 ms or 10 s have passed (16.6635 ms in the example run, about 60 Hz). | manifest `scheduling_ifi_s`, `ifi_valid_samples`, `ifi_stddev_s` |
 | Planned onset | When the schedule wants the stimulus. For a video or blank: the pre-fixation onset plus the configured pre-fixation duration (1.0 s). | not logged separately; it sets the request below |
 | Flip request time | The `when` passed to `Screen('Flip', window, when)`: half a refresh before the planned onset. PTB shows the frame at the first refresh after this time. | flips `requested_deadline_getsecs` |
 | Predicted onset | The refresh at which that Flip is expected to appear, counted in whole refreshes from the previous logged Flip (section 3). | markers `predicted_visual_getsecs` |

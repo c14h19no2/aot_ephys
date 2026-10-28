@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-10-28 — Shorter refresh calibration at window open
+
+- The refresh-interval measurement after `Screen('OpenWindow')` now stops once
+  it has 100 samples with a spread below 0.2 ms (PTB's default target was
+  0.05 ms), still with a 10 s timeout. On the Windows test laptop the spread is
+  usually 0.1-0.2 ms, so the old target often ran the full 10 s (about 600
+  samples) behind the PTB start-up screen, without changing the result: runs
+  measured 60.011-60.012 Hz with 100 or 600 samples. The display check
+  (spread up to 1 ms, 60 +/- 2 Hz) is unchanged.
+
 ## 2026-10-28 — Fixation in degrees, as in the original Python task
 
 - `stimulus.fixation` is now set in degrees of visual angle in

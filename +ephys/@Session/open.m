@@ -47,8 +47,12 @@ function open(obj)
     if debugFallback
         obj.IFI = 1/c.display.expected_refresh_hz;
     else
+        % Remeasure after PTB's own calibration at OpenWindow: at least 100
+        % samples, until their spread is below 0.2 ms or 10 s have passed. PTB's
+        % default 0.05 ms target ran to the 10 s timeout on composited Windows
+        % displays without changing the result (60.011-60.012 Hz either way).
         [obj.IFI,obj.IFISamples,obj.IFIStddev] = ...
-            Screen('GetFlipInterval',obj.Window,100);
+            Screen('GetFlipInterval',obj.Window,100,0.0002,10);
     end
     obj.DisplayTiming = ephys.assessDisplayTiming(obj.IFI, ...
         obj.IFISamples,obj.IFIStddev,windowInfo,debugFallback);
