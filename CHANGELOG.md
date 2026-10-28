@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-28 — 60 Hz default refresh rate
+
+- `display.expected_refresh_hz` in `config/experiment.yml` is now 60 (was 120),
+  the rate of both current sites. A site with another rate sets it in its site
+  file. Verified 243 unit tests on MATLAB R2022b Update 10.
+
 ## 2026-10-28 — Viewing distance for the target movie size
 
 - New `stimulus.target_size_deg` in `config/experiment.yml`, default

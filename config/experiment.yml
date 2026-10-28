@@ -17,7 +17,7 @@ input_device_index: -1
 display:
   screen_index: 0
   resolution_px: [1920, 1080]
-  expected_refresh_hz: 120
+  expected_refresh_hz: 60
   refresh_tolerance_hz: 2
   full_screen: true
   skip_sync_tests: false
