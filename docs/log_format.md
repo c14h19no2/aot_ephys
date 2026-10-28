@@ -18,7 +18,9 @@
 manifest 的 `native_trials` 保存每次呈现的解码 PTS、推定源帧顺序、跳过编号和最大取帧耗时。
 其中 `qc_issues` 保存异常类型、期望值与实际值，`preparation_overrun_s` 保存加载晚到秒数。
 中止时仍打开的当前／下一句柄保存到 `native_pending_trials`，可区分已呈现部分与仅提前准备的素材。
-原文件和播放副本在窗口打开前校验哈希；实验期间应保持素材目录不变。
+运行开始时只检查映射有效、播放副本存在，不计算视频文件哈希：manifest `media` 中视频的 `sha256`
+为空，`native_map` 的 `source_sha256`／`sha256` 是准备时记录的值，运行时未核对。需要核对时在实验外
+运行 `verify_aot_ephys_media`（见 [运行](running.md)）。实验期间应保持素材目录不变。
 加载界面不计入开头基线；基线在 Space 确认之后独立开始。
 
 `startup_loading_start/end`、`startup_movie_load_start/end` 和 `loading` 阶段 Flip
@@ -40,7 +42,7 @@ manifest 的 `startup_loading` 保存实际预加载文件、数量、纹理预�
 | `*_markers.tsv` | 事件 ID、日志序号、命名 trigger／WAV、关联 Flip／输入、预约／音频时间、同步、取消及 `audio_qc_flags`。 |
 | `*_trial_qc.tsv` | 视频／记忆 trial 的时长、重复／跳帧、时间戳及 marker 检查；trigger 偏移按与本 run 中位数的差判定。 |
 | `*_resolved_config.json` | 本次实际合并后的配置。 |
-| `*_manifest.json` | 完成／中止状态、媒体哈希、日程、版本、显示信息、两端基线、WAV 协议、实际音频设备和波形元数据。 |
+| `*_manifest.json` | 完成／中止状态、媒体信息（图片哈希；视频为准备时记录的哈希）、日程、版本、显示信息、两端基线、WAV 协议、实际音频设备和波形元数据。 |
 | `*_trigger_offsets.pdf` | 自动生成的两页 PDF：偏移随时间的散点图、偏移直方图；含范围、中位数、标准差，以及偏离中位数和偏离零超过参考值的次数。 |
 | `sources/` | 本次配置／日程／答案的原样副本及哈希。 |
 | `frame_maps/` | 按原视频名保存的帧映射 JSON，包含帧编号、PTS、内容校验和及解码来源。 |

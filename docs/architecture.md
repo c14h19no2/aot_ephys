@@ -14,6 +14,7 @@ loads/validates configuration, constructs `ephys.Session`, then calls
 | `TimelineLog`, `writeOutput` | Buffered observations, raw persistence, post-run QC and PDF report |
 | `reconstructRecords`, `reconstructTimeline` | Derive observed intervals and quality states from saved observations |
 | `prepare_aot_ephys_native_media`, `tools/prepare_native_media.py` | Offline conversion and frame/content verification |
+| `verify_aot_ephys_media`, `verifyNativeMedia` | Offline SHA-256 check of originals and copies against their maps; runs do not hash videos |
 
 ## Timing contracts
 

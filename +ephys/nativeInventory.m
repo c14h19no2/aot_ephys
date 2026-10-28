@@ -1,5 +1,7 @@
 function inventory=nativeInventory(inventory,playback)
-%NATIVEINVENTORY Verify immutable derived files before opening the PTB window.
+%NATIVEINVENTORY Validate native maps and copies before opening the PTB window.
+% File bytes are not hashed here: verify_aot_ephys_media compares the original
+% and the native copy with the SHA-256 values recorded in the map.
 folder=ephys.nativeMediaRoot(playback);
 for k=1:numel(inventory)
     if inventory(k).kind~="video", continue; end
@@ -31,8 +33,7 @@ for k=1:numel(inventory)
     map.conversion_source=map.source;
     map.source=char(inventory(k).path);
     map.path=char(fullfile(folder,inventory(k).name));
-    assert(string(map.source_sha256)==inventory(k).sha256 && ...
-        abs(map.relative_pts_s(1))<=1e-6 && ...
+    assert(abs(map.relative_pts_s(1))<=1e-6 && ...
         all(diff(map.relative_pts_s)>0) && ...
         all(abs(map.relative_pts_s(:)-(map.source_pts_s(:)-map.source_pts_s(1)))<=1e-6) && ...
         map.relative_pts_s(end)<map.duration_s, ...
@@ -46,8 +47,9 @@ for k=1:numel(inventory)
     assert(~isfinite(inventory(k).duration_s) || ...
         map.duration_s+1e-6>=inventory(k).duration_s, ...
         'ephys:NativeMap','Native copy is shorter than its original.');
-    assert(isfile(map.path) && string(ephys.sha256(map.path))==string(map.sha256), ...
-        'ephys:NativeMediaChanged','Native video changed: %s. Re-run prepare_aot_ephys_native_media.',map.path);
+    assert(isfile(map.path),'ephys:NativeMediaMissing', ...
+        ['Native video missing: %s. Copy it with its JSON map, or run ' ...
+        'prepare_aot_ephys_native_media on a preparation computer.'],map.path);
     inventory(k).width_px=map.width_px;
     inventory(k).height_px=map.height_px;
     inventory(k).duration_s=map.duration_s;
@@ -55,7 +57,6 @@ for k=1:numel(inventory)
     inventory(k).fps=map.frame_count/map.duration_s;
     inventory(k).source_pts_s=map.source_pts_s(:)';
     inventory(k).native_path=string(map.path);
-    inventory(k).native_sha256=string(map.sha256);
     inventory(k).native_map_path=string(path);
     inventory(k).native_map=map;
 end

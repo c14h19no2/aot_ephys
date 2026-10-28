@@ -38,21 +38,24 @@ classdef TestNativeRuntime < matlab.unittest.TestCase
             job.finish("aborted","Constructor-only dependency test; no presentation");
         end
 
-        function missingOrChangedMediaStillFails(tc)
+        function missingMediaFailsButVideoBytesAreNotHashed(tc)
             [c,map,~,guard]=TestNativeRuntime.fixture(); %#ok<ASGLU>
             file=fullfile(c.playback.native_media_root,'test_fw.json');
             delete(file);
             tc.verifyError(@() ephys.mediaInventory(c),'ephys:NativeMediaMissing');
             TestNativeRuntime.writeMap(c,map);
+            % Changed bytes are found by verify_aot_ephys_media, not at run start.
             source=fullfile(c.paths.video_root,'test_fw.mp4');
             fid=fopen(source,'a'); fwrite(fid,uint8(1)); fclose(fid);
-            tc.verifyError(@() ephys.mediaInventory(c),'ephys:NativeMap');
-            fid=fopen(source,'w'); fwrite(fid,'original fixture bytes'); fclose(fid);
             native=fullfile(c.playback.native_media_root,'test_fw.mp4');
             fid=fopen(native,'a'); fwrite(fid,uint8(1)); fclose(fid);
-            tc.verifyError(@() ephys.mediaInventory(c),'ephys:NativeMediaChanged');
+            inventory=ephys.mediaInventory(c);
+            tc.verifyEqual(inventory.sha256,"");
+            tc.verifyFalse(isfield(inventory,'native_sha256'));
+            tc.verifyEqual(string(inventory.native_map.sha256),string(map.sha256));
+            tc.verifyEqual(string(inventory.native_map.source_sha256),string(map.source_sha256));
             delete(native);
-            tc.verifyError(@() ephys.mediaInventory(c),'ephys:NativeMediaChanged');
+            tc.verifyError(@() ephys.mediaInventory(c),'ephys:NativeMediaMissing');
         end
 
         function invalidMetadataAndShortSlotsRemainRejected(tc)

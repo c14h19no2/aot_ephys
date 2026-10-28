@@ -65,6 +65,14 @@ prepare_aot_ephys_native_media();        % 所选视频目录中的全部 MP4
 prepare_aot_ephys_native_media(1,1,8);   % 或只准备一个 run 用到的视频
 ```
 
+运行开始时不计算视频文件的哈希。复制或准备素材之后（或采集前），可单独检查原视频和播放副本
+是否仍与其 JSON 映射中记录的 SHA-256 一致；不需要 FFmpeg／Python：
+
+```matlab
+verify_aot_ephys_media(1,1,8);   % 一个 run 用到的视频（67 个，约 12 秒）
+verify_aot_ephys_media();        % 所选视频目录中的全部 MP4（较慢）
+```
+
 ## 4. Trigger 与时序
 
 视频任务通过 PsychPortAudio 以 48000 Hz 在 channel 2 输出四个原始 WAV：run 开始、run 结束、
@@ -96,6 +104,7 @@ results = run_tests('integration');  % 合成视频测试，需要 FFmpeg／ffpr
 
 ```text
 run_aot_ephys.m        正式入口
+verify_aot_ephys_media.m  实验外核对原视频／播放副本与映射的 SHA-256
 +ephys/                会话、播放、trigger、日志、QC 和工具函数
 config/                通用配置、模板和保存的日程
 assets/triggers/       原始 WAV

@@ -40,8 +40,9 @@ in the same class file.
 
 - Absolute times use the `GetSecs` clock, in seconds. Movie-relative PTS stays
   inside the player; the video display clock starts at the actual frame-zero Flip.
-- Native initialization reads metadata/PTS from prepared JSON maps and hashes
-  both original and native files. It never resolves or launches FFmpeg/ffprobe;
+- Native initialization reads metadata/PTS from prepared JSON maps and checks
+  that each copy exists; it does not hash video files (`verify_aot_ephys_media`
+  does that outside a run). It never resolves or launches FFmpeg/ffprobe;
   offline preparation and the legacy frames backend retain those dependencies.
 - `plannedVideoOnset` and `plannedVideoOffset` are desired visual boundaries.
 - With `display.steady_flip` (video task; on by default), `steadyOnsetFlip()` replaces

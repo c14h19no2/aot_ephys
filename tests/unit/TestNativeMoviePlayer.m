@@ -114,7 +114,7 @@ classdef TestNativeMoviePlayer < matlab.unittest.TestCase
             tc.verifyEqual(numel(unique(ids)),4);
             job.stopPresentation(); job.finish("aborted","Identity regression only; no display opened");
         end
-        function cachePathsResolveLocallyAndChangedBytesAreRejected(tc)
+        function cachePathsResolveLocallyAndMissingCopiesAreRejected(tc)
             folder=tempname; mkdir(folder);
             guard=onCleanup(@() rmdir(folder,'s')); %#ok<NASGU>
             source=fullfile(folder,'test_fw.mp4');
@@ -139,8 +139,12 @@ classdef TestNativeMoviePlayer < matlab.unittest.TestCase
             tc.verifyEqual(string(resolved.native_map.source),string(source));
             tc.verifyEqual(resolved.source_pts_s,[1 1.04 1.08]);
             tc.verifyEqual(resolved.native_map_path,string(fullfile(copies,'test_fw.json')));
+            % Bytes are checked by verify_aot_ephys_media, not when maps are read.
             fid=fopen(native,'a'); fprintf(fid,' changed'); fclose(fid);
-            tc.verifyError(@() ephys.nativeInventory(media,playback),'ephys:NativeMediaChanged');
+            resolved=ephys.nativeInventory(media,playback);
+            tc.verifyEqual(string(resolved.native_map.sha256),string(map.sha256));
+            delete(native);
+            tc.verifyError(@() ephys.nativeInventory(media,playback),'ephys:NativeMediaMissing');
         end
         function nativeCopyDirectoryMustBeExplicit(tc)
             tc.verifyError(@() ephys.nativeMediaRoot(struct()),'ephys:NativeMediaRoot');

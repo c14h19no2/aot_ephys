@@ -3,7 +3,7 @@ classdef TestNativePreparation < matlab.unittest.TestCase
         function allDirectoryIncludesOnlyMP4Files(tc)
             [folder,site,guard]=TestNativePreparation.fixture(); %#ok<ASGLU>
             originals=fullfile(folder,'originals');
-            for name=["0002_rv.MP4","0001_fw.mp4","notes.txt"]
+            for name=["0002_rv.MP4","0001_fw.mp4","notes.txt","._0001_fw.mp4"]
                 fid=fopen(fullfile(originals,name),'w'); fclose(fid);
             end
             mkdir(fullfile(originals,'folder.mp4'));

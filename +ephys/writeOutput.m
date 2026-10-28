@@ -140,8 +140,10 @@ if string(session.Config.playback.backend)=="native"
         "Zero-based source index inferred only from a unique offline PTS match within 1 us; unmatched identity is NaN; sequence mismatches are reported; native texture pixels are not hashed";
     manifest.pts_origin_handling= ...
         "Lossless native copies normalized to first source PTS; display clock starts at first displayed texture Flip; logs preserve original source PTS and raw native PTS";
-    manifest.media_hash_scope= ...
-        "Original/native bytes hashed at preflight; offline conversion verifies source SHA before/after and every decoded YUV frame plus PTS; no disk/hash work during video playback";
+    if session.Config.task_kind=="video"
+        manifest.media_hash_scope= ...
+            "Video bytes not hashed at run time (media sha256 empty); native_map source_sha256/sha256 are the values recorded at preparation, checked separately by verify_aot_ephys_media; offline conversion verifies source SHA before/after and every decoded YUV frame plus PTS; no disk/hash work during video playback";
+    end
     if isprop(session,'NativeTrials'), manifest.native_trials=session.NativeTrials; end
     if isprop(session,'NativePendingTrials'), manifest.native_pending_trials=session.NativePendingTrials; end
 end

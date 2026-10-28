@@ -1,6 +1,9 @@
 function inventory = mediaInventory(config)
-%MEDIAINVENTORY Hash assets and read native maps or inspect legacy media.
+%MEDIAINVENTORY Read native maps or inspect legacy media before a run.
 % Native playback uses only previously verified JSON metadata, never a process.
+% Native videos are not hashed here (sha256 stays empty); verify_aot_ephys_media
+% checks them against their maps outside a run. Pictures are small, and the
+% legacy frames backend keys its decode cache by hash, so both are still hashed.
 names = unique(config.schedule(config.schedule~="blank"),'stable');
 native = config.task_kind == "video" && string(config.playback.backend) == "native";
 inventory = repmat(struct('name',"",'path',"",'kind',"", ...
@@ -32,7 +35,9 @@ for i = 1:numel(names)
     inventory(i).path = filename;
     inventory(i).condition = ephys.condition(name);
     inventory(i).size_bytes = file.bytes;
-    inventory(i).sha256 = string(ephys.sha256(filename));
+    if ~native
+        inventory(i).sha256 = string(ephys.sha256(filename));
+    end
 end
 if native
     inventory = ephys.nativeInventory(inventory,config.playback);

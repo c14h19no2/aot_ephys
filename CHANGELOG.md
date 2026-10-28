@@ -1,5 +1,28 @@
 # Changes
 
+## 2026-10-28 — No video hashing at run start
+
+- A native video run no longer computes the SHA-256 of original videos and
+  native copies before opening the window. It still requires each JSON map to
+  be valid and each native copy to exist (`ephys:NativeMediaMissing`). Changed
+  bytes are no longer detected at run start (`ephys:NativeMediaChanged` is gone).
+- In the manifest, `media.sha256` is empty for native videos and the
+  `native_sha256` field is no longer written; `native_map.source_sha256` and
+  `native_map.sha256` are the values recorded at preparation, not checked
+  during the run. Memory pictures and the legacy frames backend are still
+  hashed; configuration files and trigger WAVs are hashed as before.
+- New `verify_aot_ephys_media` checks originals and copies against their maps
+  outside a run: all MP4s of the selected site, or one saved schedule with
+  `(sub,ses,run)`. It reports `map_missing`, `map_invalid`, `original_missing`,
+  `original_changed`, `native_missing` and `native_changed`, warns if any are
+  found and needs neither FFmpeg nor Python.
+- The all-videos mode of `prepare_aot_ephys_native_media` and the new check
+  skip hidden files such as macOS `._name.mp4` sidecars.
+- On the Windows test laptop, the run-start media check for run 8 (67 videos)
+  fell from 12.3-13.5 s to 0.1-0.2 s. `verify_aot_ephys_media(1,1,8)` took
+  12 s and found all 67 videos matching their maps.
+- Verified 231 unit tests on MATLAB R2022b Update 10.
+
 ## 2026-10-27 — Cheaper trigger polling
 
 - `WavTriggerBackend` still reads the master and slave status on every poll,

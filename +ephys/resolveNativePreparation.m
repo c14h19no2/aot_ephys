@@ -1,5 +1,6 @@
 function request=resolveNativePreparation(varargin)
 %RESOLVENATIVEPREPARATION Select all source MP4s or one saved video schedule.
+% Shared by prepare_aot_ephys_native_media and verify_aot_ephys_media.
 root=ephys.projectRoot();
 % A text first argument is a subject label when a session number follows it.
 if nargin==0 || ((ischar(varargin{1}) || isstring(varargin{1})) && ...
@@ -25,17 +26,18 @@ if nargin==0 || ((ischar(varargin{1}) || isstring(varargin{1})) && ...
         'ephys:VideoRoot','Original video directory is missing: %s. Set paths.video_root in the site YAML.',videoRoot);
     entries=dir(videoRoot); entries=entries(~[entries.isdir]);
     names=sort(string({entries.name})');
-    names=names(endsWith(lower(names),'.mp4'));
+    % Skip hidden files such as macOS "._name.mp4" sidecars from copied folders.
+    names=names(endsWith(lower(names),'.mp4') & ~startsWith(names,"."));
     assert(~isempty(names),'ephys:NativePreparationNoVideos', ...
         'No MP4 files found in paths.video_root: %s.',videoRoot);
     sources=fullfile(videoRoot,names);
     mode="all videos";
 else
     assert(nargin>=3,'ephys:NativePreparationArguments', ...
-        'Call prepare_aot_ephys_native_media() for all videos, or supply subject, session and run.');
+        'Call it without arguments for all videos, or supply subject, session and run.');
     run=ephys.resolveRunRequest(varargin{:});
     assert(run.task=="video",'ephys:NativePreparationTask', ...
-        'Native media preparation accepts the video task only.');
+        'Native media preparation and verification accept the video task only.');
     [c,~]=ephys.loadConfig("video",run.schedule_path,run.site_path, ...
         run.options.Debug,"",run.site_selection_path);
     sitePath=run.site_path;

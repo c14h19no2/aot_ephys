@@ -57,6 +57,20 @@ filenames in the configured external directory. Another acquisition computer
 can reuse the MP4/JSON pairs without running conversion there. JSON paths are
 relocated using the selected site.
 
+A run does not hash video files; it checks only that each map is valid and its
+copy exists. After preparing or copying media, or before a session, check that
+originals and copies still match the SHA-256 values recorded in their maps.
+This needs neither FFmpeg nor Python, and reads every file once:
+
+```matlab
+verify_aot_ephys_media(1,1,8);   % Movies of one run (67 files, about 12 s).
+verify_aot_ephys_media();        % All MP4 files in the selected video root.
+```
+
+It prints each mismatch (`map_missing`, `map_invalid`, `original_missing`,
+`original_changed`, `native_missing`, `native_changed`) and warns if any are
+found; `results = verify_aot_ephys_media(...)` also returns one row per video.
+
 ## Start a run
 
 ```matlab
