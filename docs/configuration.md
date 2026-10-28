@@ -88,6 +88,16 @@ protocol:
 例如 30 × 16.875 cm 的屏幕、1920 × 1080 窗口、`movie_scale: 1` 时，影片宽 30 cm，距离约 118.6 cm。
 若量得的屏幕宽高比与分辨率不一致，两个方向的距离会不同，窗口会提示该距离下影片的实际视角，
 请重新测量。结果同时保存在 manifest 的 `viewing` 中。
+
+**注视点。** 注视点按原 Python 版本以视角度定义（`stimulus.fixation.*_deg`），位于窗口中心（影片中心）。
+受试者坐在上述距离时，影片宽度对应 14.42°，因此像素距离为 `d = (影片宽像素 / 2) / tan(7.21°)`，
+视角为 a 的元素宽 `2 × d × tan(a / 2)` 像素；不需要屏幕厘米数，任何分辨率都保持同样的视角。
+1920 像素宽的影片上：底衬 24.20 px、中心点 4.84 px、线宽 1.04 px（原设备 1920 px／69 cm、196 cm
+时分别为 17.39、3.48 和 0.75 px）。绘制顺序：底衬 → 两条抗锯齿白线 → 黑点。原说明要求最后画线，
+但中心点只有几个像素，两条白线会盖住大部分黑色，看起来是白点，所以点画在线之上。原说明中的白色描边
+默认不画（`outline_width_deg: 0`）；设为 0.00788 时在黑点边缘加 1.04 px 白色描边。
+底衬与点各为一张窗口打开时生成的 8 × 8 超采样抗锯齿纹理，按像素对齐绘制。像素尺寸和驱动支持的
+平滑线宽范围保存在 manifest 的 `fixation` 中；线宽超出该范围时运行开始会警告。
 实际素材矩形 `[left, top, right, bottom]` 记录在 manifest 的 `media[].display_rect_px` 中；
 视频矩形在呈现前计算并缓存，视频播放期间不重新计算布局。
 
@@ -108,10 +118,10 @@ protocol:
 | `input_device_index` | PTB 键盘编号；`-1` 使用默认设备。 |
 | `paths.video_root` / `picture_root` | 日程中原始 MP4／PNG 所在目录。 |
 | `paths.output_root` | 每次记录的输出父目录；`run_aot_ephys` 在其下按采集日期 `yyyy-mm-dd` 建子文件夹。 |
-| `stimulus.fixation.dot_radius_px` | 注视点半径；本机参考值 1.7391304348。 |
-| `stimulus.fixation.surround_diameter_px` | 注视点周围形状直径；本机参考值 17.3913043478。 |
-| `stimulus.fixation.line_width_px` | 注视线宽，至少 1 像素。 |
-| `stimulus.fixation.line_rgb255` / `dot_rgb255` / `surround_rgb255` | 注视线、点、周围形状的颜色。 |
+| `stimulus.fixation.surround_diameter_deg` / `surround_fringe` | 灰色圆形底衬的外径（视角度，默认 0.18270°）及边缘比例（默认 0.3）：半径内 70% 不透明，外 30% 按升余弦（PsychoPy `raisedCosine`）渐变到透明。在灰色背景上不可见，叠在视频上为柔边灰盘。 |
+| `stimulus.fixation.dot_diameter_deg` / `outline_width_deg` | 黑色中心点直径（默认 0.03654°）及可选白色描边宽度（以点的边缘为中心；默认 `0`，不画描边；原说明为 0.00788°）。 |
+| `stimulus.fixation.line_width_deg` | 过中心 45° 和 135° 两条白色贯穿线的宽度（默认 0.00788°），在中心点之前绘制（点在线之上），并做抗锯齿。 |
+| `stimulus.fixation.line_rgb255` / `outline_rgb255` / `dot_rgb255` / `surround_rgb255` | 线、描边、点和底衬的颜色；底衬与背景同为 128 灰。 |
 | `playback.ffmpeg_path` / `ffprobe_path` | 仅离线准备副本及旧 `frames` 播放器使用；空值时自动查找。正式 `native` 运行忽略这些字段。 |
 | `playback.backend` | 默认 `native`：独立 PTB 句柄与滚动提前准备；`frames`：保留旧的完整 RGB 解码和纹理缓存播放器。 |
 | `playback.python_path` | 离线准备所用 Python；空值使用 `python3`。仅需 Python 标准库。 |

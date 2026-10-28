@@ -369,7 +369,7 @@ classdef TestFixedFixationRuntime < matlab.unittest.TestCase
                         'windows',[],'requests',[],'draws',0, ...
                         'stallOnDraw',0,'stallSeconds',0,'stallEachDraw',0,'quitAt',Inf, ...
                         'imagingMode',0,'waitOvershoot',0,'macBackend',false,'spaceSent',false, ...
-                        'quitWhenReserved',false);
+                        'quitWhenReserved',false,'blend',{{'GL_ONE','GL_ZERO'}});
                 case "state"
                     varargout={state};
                 case "set"
@@ -406,7 +406,20 @@ classdef TestFixedFixationRuntime < matlab.unittest.TestCase
                                 state.time=state.time+state.stallSeconds;
                             end
                             state.time=state.time+state.stallEachDraw;
-                        case {"filloval","drawline","drawingfinished","textsize"}
+                        case {"filloval","drawline","drawingfinished","textsize","drawtexture"}
+                        case "maketexture"
+                            varargout={20};
+                        case "drawlines"
+                            % As PTB: smoothing (argument 6) needs alpha blending.
+                            if numel(varargin)>=7 && varargin{7}~=0
+                                assert(strcmp(state.blend{1},'GL_SRC_ALPHA'),'test:SmoothWithoutBlending', ...
+                                    'Line smoothing does not work with alpha-blending disabled.');
+                            end
+                            % Smooth and aliased line-width ranges of the driver.
+                            varargout={0.5,10,1,10};
+                        case "blendfunction"
+                            varargout=state.blend;
+                            if numel(varargin)>=4, state.blend=varargin(3:4); end
                         case "flip"
                             request=varargin{3};
                             state.requests(end+1)=request;

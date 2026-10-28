@@ -8,10 +8,6 @@ display:
   expected_refresh_hz: 60
   full_screen: true
   skip_sync_tests: false
-stimulus:
-  fixation:
-    dot_radius_px: 8
-    surround_diameter_px: 16
 markers:
   wav:
     output_channel: 2

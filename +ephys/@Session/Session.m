@@ -33,6 +33,7 @@ classdef Session < handle
         DisplayTiming = struct()
         RefreshGuard = struct() % Initial-fixation refresh check; see checkRefreshGuard.
         VBLDuration = 0 % PTB blanking correction for predicted onsets, fixed at open.
+        Fixation = struct() % Pixel geometry and texture from ephys.fixationGeometry, set at open.
         LastVBL = NaN
         NextTrialOnset = NaN
         SavedSkipSync = []
@@ -474,7 +475,7 @@ classdef Session < handle
                 obj.Player.draw(obj.MovieDestinationRect,max(obj.LastVBL+obj.IFI,GetSecs));
                 frame = obj.Player.info();
             end
-            ephys.drawFixation(obj.Window,obj.Config);
+            ephys.drawFixation(obj.Window,obj.Fixation);
             ephys.drawPhotodiode(obj.Window,obj.Config,photodiodeState);
         end
 

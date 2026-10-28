@@ -1,5 +1,29 @@
 # Changes
 
+## 2026-10-28 — Fixation in degrees, as in the original Python task
+
+- `stimulus.fixation` is now set in degrees of visual angle in
+  `config/experiment.yml`: gray surround 0.18270° with a raised-cosine edge
+  over its outer 30% (PsychoPy `raisedCosine`, `fringeWidth = 0.3`), black dot
+  0.03654°, and two white 0.00788° lines at 45° and 135°. It stays at the
+  window (movie) centre.
+- The specification's 0.00788° white outline around the dot is optional:
+  `outline_width_deg` is 0 (no outline) by default.
+- Drawing order: surround, lines, then the dot (and outline, if set). The
+  specification draws the lines last, but at a few pixels across they hide
+  most of the black dot, which then looks white.
+- `ephys.fixationGeometry` converts the angles to pixels from the movie's
+  pixel width and `stimulus.target_size_deg` (the viewing distance at which the
+  movie has its target angle), so they hold on any screen without per-site
+  pixel values: on a 1920-pixel movie 24.20, 4.84 and 1.04 px. Surround and
+  dot are 8 x 8 supersampled textures made at window open and drawn
+  pixel-aligned; the lines are anti-aliased (`DrawLines`, smooth) with alpha
+  blending enabled only for the fixation. The manifest saves the pixel
+  geometry and the driver's smooth-line width range as `fixation`.
+- Removed `dot_radius_px`, `surround_diameter_px` and `line_width_px`; site
+  files that still set them stop with an unknown-field error.
+- Verified 248 unit tests on MATLAB R2022b Update 10.
+
 ## 2026-10-28 — 60 Hz default refresh rate
 
 - `display.expected_refresh_hz` in `config/experiment.yml` is now 60 (was 120),

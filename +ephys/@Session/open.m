@@ -74,6 +74,22 @@ function open(obj)
             1/obj.IFI,c.display.expected_refresh_hz);
     end
     HideCursor;
+    % Fixation overlay: degrees converted to pixels for this window, and its
+    % surround and dot textures made once, outside the presentation loop.
+    obj.Fixation = ephys.fixationGeometry(c);
+    obj.Fixation.surround_texture = Screen('MakeTexture',obj.Window,obj.Fixation.surround_image);
+    obj.Fixation.dot_texture = Screen('MakeTexture',obj.Window,obj.Fixation.dot_image);
+    % The driver's smooth-line width range, returned by any DrawLines call: a
+    % zero-length unsmoothed line in the background colour, since smoothing
+    % needs alpha blending (drawFixation enables it); every presented frame
+    % redraws the whole window.
+    [minSmooth,maxSmooth] = Screen('DrawLines',obj.Window,[0 0;0 0],1,background,[],0,1);
+    obj.Fixation.smooth_line_width_range_px = [minSmooth maxSmooth];
+    if obj.Fixation.line_width_px<minSmooth || obj.Fixation.line_width_px>maxSmooth
+        warning('ephys:FixationLineWidth', ...
+            'Fixation lines are %.2f px wide; the driver draws smooth lines of %.2f to %.2f px.', ...
+            obj.Fixation.line_width_px,minSmooth,maxSmooth);
+    end
     if string(c.playback.backend) == "native"
         obj.MovieCache = ephys.NativeMovieQueue(obj.Window,c.playback,obj.Inventory,c.schedule);
     else

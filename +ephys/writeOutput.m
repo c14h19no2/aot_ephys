@@ -115,6 +115,11 @@ try
 catch cause
     manifest.viewing = struct('status',"invalid",'message',string(cause.message));
 end
+% Fixation sizes in pixels as drawn, without the texture images and handles.
+if isobject(session) && isprop(session,'Fixation') && isfield(session.Fixation,'center_px')
+    manifest.fixation = rmfield(session.Fixation,intersect(fieldnames(session.Fixation), ...
+        {'surround_image','dot_image','surround_texture','dot_texture'}));
+end
 manifest.media_hash_scope = ...
     "SHA-256 at preflight; video bytes rechecked before and after each complete decode";
 manifest.trigger_backend = class(session.Triggers.Backend);

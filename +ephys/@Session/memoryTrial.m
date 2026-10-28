@@ -14,7 +14,7 @@ function memoryTrial(obj,trialNr,pictureName)
     Screen('FillRect',obj.Window,background);
     pictureRect = ephys.movieRect(config,[size(pixels,2), size(pixels,1)]);
     Screen('DrawTexture',obj.Window,texture,[],pictureRect);
-    ephys.drawFixation(obj.Window,obj.Config);
+    ephys.drawFixation(obj.Window,obj.Fixation);
     ephys.drawPhotodiode(obj.Window,obj.Config,"off");
     frame = ephys.noFrame("picture");
     frame.texture_handle = double(texture);

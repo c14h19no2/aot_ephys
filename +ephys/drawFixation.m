@@ -1,24 +1,21 @@
-function drawFixation(window, config, screenFcn)
-%DRAWFIXATION Main-task overlay using site-specified pixel dimensions.
-% The source's zero-contrast raised-cosine surround is visually the same
-% nominal gray as its background. Its exact gamma appearance is unverified.
+function drawFixation(window, fixation, screenFcn)
+%DRAWFIXATION Draw the fixation overlay prepared by ephys.fixationGeometry.
+% fixation.surround_texture and fixation.dot_texture hold surround_image and
+% dot_image, made once when the window opens. Order: surround, lines, dot.
+% Alpha blending is enabled only here, for the masked textures and the smoothed
+% lines, and the previous blend function is restored afterwards.
 if nargin < 3
     screenFcn = @Screen;
 end
-r = config.display.resolution_px;
-w = r{1}; h = r{2};
-cx = w / 2;
-cy = h / 2;
-fix = config.stimulus.fixation;
-rgb = @(v) cell2mat(v);
-d = fix.surround_diameter_px / 2;
-screenFcn('FillOval', window, rgb(fix.surround_rgb255), [cx-d cy-d cx+d cy+d]);
-d = fix.dot_radius_px;
-screenFcn('FillOval', window, rgb(fix.dot_rgb255), [cx-d cy-d cx+d cy+d]);
-reach = max(w, h);
-line = rgb(fix.line_rgb255);
-screenFcn('DrawLine', window, line, cx-reach, cy-reach, ...
-    cx+reach, cy+reach, fix.line_width_px);
-screenFcn('DrawLine', window, line, cx-reach, cy+reach, ...
-    cx+reach, cy-reach, fix.line_width_px);
+[source,destination] = screenFcn('BlendFunction',window, ...
+    'GL_SRC_ALPHA','GL_ONE_MINUS_SRC_ALPHA');
+% Textures are pixel-aligned, so nearest filtering keeps them exact.
+screenFcn('DrawTexture',window,fixation.surround_texture,[],fixation.texture_rect,0,0);
+% Diagonal lines, anti-aliased (smooth 1); lenient keeps a width outside the
+% driver's smooth-line range from stopping the run.
+screenFcn('DrawLines',window,fixation.line_xy,fixation.line_width_px, ...
+    fixation.line_rgb255,[],1,1);
+% The dot and its outline on top, so the lines do not hide the black dot.
+screenFcn('DrawTexture',window,fixation.dot_texture,[],fixation.texture_rect,0,0);
+screenFcn('BlendFunction',window,source,destination);
 end

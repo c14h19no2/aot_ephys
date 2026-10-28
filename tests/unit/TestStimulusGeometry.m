@@ -54,28 +54,38 @@ classdef TestStimulusGeometry < matlab.unittest.TestCase
 
         function fixationRemainsAtTheWindowCenter(tc)
             config = TestStimulusGeometry.config([1440,900]);
-            config.stimulus.fixation = struct('surround_diameter_px',20, ...
-                'dot_radius_px',2,'line_width_px',1, ...
-                'surround_rgb255',{{128,128,128}},'dot_rgb255',{{0,0,0}}, ...
-                'line_rgb255',{{255,255,255}});
+            config.stimulus.target_size_deg = {14.42,8.14};
+            config.stimulus.fixation = TestFixationGeometry.fixation();
             for scale = [1,0.5]
                 config.stimulus.movie_scale = scale;
+                fixation = ephys.fixationGeometry(config);
+                fixation.surround_texture = 21;
+                fixation.dot_texture = 22;
                 commands = strings(0,1);
                 drawArguments = {};
-                ephys.drawFixation(7,config,@screen);
-                tc.verifyEqual(commands,["FillOval";"FillOval";"DrawLine";"DrawLine"]);
-                for k = 1:2
-                    rect = drawArguments{k}{3};
-                    tc.verifyEqual((rect(1:2)+rect(3:4))/2,[720,450]);
-                end
-                for k = 3:4
-                    line = cell2mat(drawArguments{k}(3:6));
-                    tc.verifyEqual((line(1:2)+line(3:4))/2,[720,450]);
-                end
+                ephys.drawFixation(7,fixation,@screen);
+                % Surround, lines, then the dot on top.
+                tc.verifyEqual(commands,["BlendFunction";"DrawTexture";"DrawLines"; ...
+                    "DrawTexture";"BlendFunction"]);
+                tc.verifyEqual([drawArguments{2}{3} drawArguments{4}{3}],[21 22]);
+                tc.verifyEqual(drawArguments{4}{5},fixation.texture_rect);
+                tc.verifyEqual(drawArguments{1}(3:4),{'GL_SRC_ALPHA','GL_ONE_MINUS_SRC_ALPHA'});
+                tc.verifyEqual(drawArguments{5}(3:4),{'GL_ONE','GL_ZERO'});
+                rect = drawArguments{2}{5};
+                tc.verifyEqual(rect,fixation.texture_rect);
+                tc.verifyEqual(rect,round(rect));
+                tc.verifyLessThanOrEqual(abs((rect(1:2)+rect(3:4))/2-[720,450]),0.5);
+                tc.verifyEqual(drawArguments{2}{7},0); % nearest filtering
+                xy = drawArguments{3}{3};
+                tc.verifyEqual((xy(:,1)+xy(:,2))/2,[720;450]);
+                tc.verifyEqual((xy(:,3)+xy(:,4))/2,[720;450]);
+                tc.verifyEqual(abs(diff(xy(:,1:2),1,2)),abs(diff(xy(:,3:4),1,2)));
+                tc.verifyEqual(drawArguments{3}{7},1); % smoothed
             end
-            function screen(command,varargin)
+            function varargout = screen(command,varargin)
                 commands(end+1,1) = string(command);
-                drawArguments{end+1} = varargin;
+                drawArguments{end+1} = [{command},varargin];
+                varargout = {'GL_ONE','GL_ZERO'};
             end
         end
 

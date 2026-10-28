@@ -43,11 +43,23 @@ stimulus:
   # distance that gives this size.
   target_size_deg: [14.42, 8.14]
   background_rgb255: [128, 128, 128]
+  # Original Python fixation, in degrees of visual angle (docs/configuration.md).
+  # Pixel sizes follow from target_size_deg: at the suggested viewing distance
+  # each element keeps this angle on any screen (ephys.fixationGeometry).
   fixation:
-    dot_radius_px: null
-    surround_diameter_px: null
-    line_width_px: 1
+    # Gray disc behind the dot; its opacity falls off as a raised cosine over
+    # the outer surround_fringe of its radius.
+    surround_diameter_deg: 0.18270
+    surround_fringe: 0.3
+    # Black dot, drawn on top. outline_width_deg adds a white outline centred
+    # on its edge (the written specification gives 0.00788); 0 leaves it out.
+    dot_diameter_deg: 0.03654
+    outline_width_deg: 0
+    # Two white lines at 45 and 135 degrees through the centre, drawn before
+    # the dot (lines drawn over a dot this small would hide its black).
+    line_width_deg: 0.00788
     line_rgb255: [255, 255, 255]
+    outline_rgb255: [255, 255, 255]
     dot_rgb255: [0, 0, 0]
     surround_rgb255: [128, 128, 128]
 instructions:

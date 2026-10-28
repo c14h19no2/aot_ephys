@@ -16,10 +16,6 @@ paths:
   video_root: ''
   picture_root: ''
   output_root: ''
-stimulus:
-  fixation:
-    dot_radius_px: null
-    surround_diameter_px: null
 markers:
   wav:
     # One-based stereo output: 1 = left, 2 = right.
