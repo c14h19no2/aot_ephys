@@ -126,6 +126,26 @@ classdef TestSubjectAndOutput < matlab.unittest.TestCase
                 tc.verifyGreaterThan(strlength(p.error),0);
             end
         end
+        function previewIncludesTheViewingDistanceOfTheSite(tc)
+            [site,~]=tc.siteWithOutput();
+            args={'Site',site,'SubjectMap',TestSubjectAndOutput.mapFixture()};
+            p=ephys.previewRunRequest("patientname",1,8,args{:});
+            tc.verifyEqual(p.viewing.status,"no_screen_size");
+            settings=ephys.readYaml(site);
+            settings.display.screen_size_cm={30,16.875};
+            yaml.dumpFile(site,settings,'block');
+            p=ephys.previewRunRequest("patientname",1,8,args{:});
+            tc.verifyEqual(p.viewing.status,"ok");
+            request=ephys.resolveRunRequest("patientname",1,8,args{:});
+            [c,~]=ephys.loadConfig(request.task,request.schedule_path,request.site_path,false,"");
+            tc.verifyEqual(p.viewing.distance_cm,ephys.viewingDistance(c).distance_cm,'AbsTol',1e-9);
+            settings.display.screen_size_cm={-30,16.875};
+            yaml.dumpFile(site,settings,'block');
+            p=ephys.previewRunRequest("patientname",1,8,args{:});
+            tc.verifyTrue(p.ok);
+            tc.verifyEqual(p.viewing.status,"invalid");
+            tc.verifyGreaterThan(strlength(p.viewing.message),0);
+        end
         function setupCreatesAnEmptySubjectMap(tc)
             for name=["site.example.yml","active_site.example.yml","subjects.example.yml"]
                 copyfile(fullfile(ephys.projectRoot(),'config',name),fullfile(tc.Folder,name));

@@ -25,6 +25,8 @@ aot_ephys/
 ```
 
 site 选择顺序为：显式 `'Site'` 参数优先，否则读取 `active_site.yml` 的 `site_file`。
+无参数的 `run_aot_ephys()` 窗口第一行可选择 site（`config/site.*.yml`，不含示例）；选择其他 site 并按
+Start 时，窗口把它写入 `active_site.yml` 的 `site_file`（保留注释），之后的运行都使用它。
 `site.example.yml` 只用于创建新 site，不参与运行时合并。配置合并顺序为 `experiment.yml → 所选 site → debug.yml（仅 Debug）`。
 所选 site 不会再继承 `site.local.yml`；site 只需写需要覆盖的字段。未知字段会报错；自定义 site 中旧的时长覆盖应移回公共配置，以保持设备间一致。
 通过选择文件启动时，选择文件与实际 site 都会复制到本次输出的 `sources/` 并保存哈希；
@@ -67,6 +69,7 @@ protocol:
 | `stimulus.movie_canvas_px` | 兼容旧 site 配置保留；当前显示尺寸由窗口和素材实际宽高决定，该字段不再限制显示区域。 |
 | `stimulus.movie_scale` | 相对于完整适配窗口后的额外缩放，范围 `(0,1]`；默认 `1` 使一组对边贴齐窗口，小于 `1` 会进一步缩小。注视点始终在窗口中心。 |
 | `stimulus.background_rgb255` | 背景颜色，目前 `[128,128,128]`。 |
+| `stimulus.target_size_deg` | 影片应占的视角 `[宽, 高]`（度），默认 `[14.42, 8.14]`；与 `display.screen_size_cm` 一起用于计算观看距离。`null` 时不计算。 |
 | `task.name` / `task.memory_variant` | 任务与记忆版本标签；运行时根据所选记忆日程更新版本。 |
 
 视频和记忆图片均完整显示，按素材真实宽高比等比缩放并居中，外围使用
@@ -77,6 +80,14 @@ protocol:
 例如当前 1440 × 900 窗口中，1920 × 1080 影片显示为 **1440 × 810**：
 左右贴齐窗口，上下各留 45 像素。切换为 1920 × 1080 窗口时，影片完整铺满窗口。
 进一步缩小 `movie_scale` 时仍保持居中，此时可能在四边留白。
+
+**观看距离。** 在 site 文件中设置 `display.screen_size_cm`（可见画面的宽和高，厘米）后，运行窗口
+会显示受试者眼睛到屏幕的距离，使影片正好占 `stimulus.target_size_deg`（默认 14.42° × 8.14°）。
+计算方法：按上述规则得到影片的像素矩形，乘以每像素的厘米数（屏幕厘米 ÷ `resolution_px`）得到影片的
+实际宽高，再由 `距离 = (宽 / 2) / tan(视角宽 / 2)` 计算，高度方向同理；两个方向的结果取平均。
+例如 30 × 16.875 cm 的屏幕、1920 × 1080 窗口、`movie_scale: 1` 时，影片宽 30 cm，距离约 118.6 cm。
+若量得的屏幕宽高比与分辨率不一致，两个方向的距离会不同，窗口会提示该距离下影片的实际视角，
+请重新测量。结果同时保存在 manifest 的 `viewing` 中。
 实际素材矩形 `[left, top, right, bottom]` 记录在 manifest 的 `media[].display_rect_px` 中；
 视频矩形在呈现前计算并缓存，视频播放期间不重新计算布局。
 
@@ -91,6 +102,7 @@ protocol:
 | `display.refresh_tolerance_hz` | PTB 调度刷新率与期望值的差异参考；超出时警告并记录，使用实际 PTB 间隔继续。 |
 | `display.full_screen` | 是否全屏；Debug 改为窗口。 |
 | `display.skip_sync_tests` | PTB 同步检查跳过开关；正式运行保持 `false`。 |
+| `display.screen_size_cm` | 刺激屏幕可见画面的实际宽高 `[宽, 高]`（厘米），在 site 文件中用尺子量取；默认 `null`（观看距离未知）。见下文“观看距离”。 |
 | `display.refresh_guard_min_fraction` | 初始基线结束时的刷新检查：基线固定网格刷新槽中实际提交的最低比例，默认 `0.9`。低于该值时在第一个 trial 之前停止运行，按中止保存；基线不足 1 s 时只记录、不判定；`null` 关闭判定。 |
 | `display.steady_flip` | 视频任务的 onset 呈现方式，默认 `true`：在每个带 WAV 的 onset 之前逐帧刷新注视画面直到 onset 所在刷新，使每个 onset 前显示管线状态相同。site 中设为 `false` 时改为首帧提前绘制并保持到定时 Flip。两种模式的比较方法见 [trigger_timing.md](trigger_timing.md#10-held-and-steady-onset-modes)。 |
 | `input_device_index` | PTB 键盘编号；`-1` 使用默认设备。 |

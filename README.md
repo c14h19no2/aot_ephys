@@ -27,13 +27,15 @@ setup 只修改本次会话的 path，不下载软件、不打开设备、不保
 ## 2. 运行
 
 ```matlab
-out = run_aot_ephys();                      % 弹出窗口：被试、session、run、任务、Overwrite
+out = run_aot_ephys();                      % 弹出窗口：site、被试、session、run、任务、Overwrite
 out = run_aot_ephys(1,1,8);                 % sub-001_ses-01_run-08_task-video
 out = run_aot_ephys(1,1,8,2);               % 同一日程的另一次记录（_record-02）
 out = run_aot_ephys('patientname',1,8);     % 名称被试，日程编号见 subjects.local.yml
 out = run_aot_ephys(1,1,1,'Task','memory');
 ```
 
+- Site：窗口第一行列出 `config/site.*.yml`，默认 `active_site.yml` 中的 site，并显示屏幕尺寸、分辨率、
+  刷新率和观看距离；选择其他 site 并按 Start 时写入 `active_site.yml`。
 - 被试：数字补零到 3 位（`3` → `sub-003`）并使用同号日程；名称（只含字母和数字）原样保留，
   其日程编号写在 `config/subjects.local.yml`。
 - 输出：`<paths.output_root>/<采集日期 yyyy-mm-dd>/<输出名称>/`。当天已有同名输出时在开始前停止；

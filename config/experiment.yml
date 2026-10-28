@@ -21,6 +21,9 @@ display:
   refresh_tolerance_hz: 2
   full_screen: true
   skip_sync_tests: false
+  # Visible width and height of the stimulus screen in cm, measured on the
+  # screen. Set it in the site file; null leaves the viewing distance unknown.
+  screen_size_cm: null
   # Acquisition precondition checked when the initial fixation ends: the minimum
   # fraction of its fixed-grid refresh slots that were actually presented. A
   # lower value stops the run before the first trial; null disables the check.
@@ -35,6 +38,10 @@ stimulus:
   movie_canvas_px: [1536, 1080]
   # 1 fits to the full window; smaller values add centered margins.
   movie_scale: 1
+  # Intended visual angle of the fitted movie, width and height in degrees.
+  # With display.screen_size_cm set, the run dialog shows the eye-to-screen
+  # distance that gives this size.
+  target_size_deg: [14.42, 8.14]
   background_rgb255: [128, 128, 128]
   fixation:
     dot_radius_px: null

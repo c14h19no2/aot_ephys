@@ -1,7 +1,8 @@
 function [outputDir,status] = run_aot_ephys(subject,sessionNumber,runNumber,varargin)
 %RUN_AOT_EPHYS Run scanner-free AOT with named WAV triggers and timing logs.
 % Default Site comes from config/active_site.yml; explicit Site overrides it.
-% out = run_aot_ephys() asks for subject, session, run, task and Overwrite.
+% out = run_aot_ephys() asks for site, subject, session, run, task and Overwrite;
+% Start makes the chosen site the one in config/active_site.yml.
 % out = run_aot_ephys(sub,ses,run[,recordingNumber],'Name',value,...)
 % Example: run_aot_ephys(1,1,8,2) repeats run 8 into a record-02 folder.
 % Output: <paths.output_root>/<yyyy-mm-dd>/sub-001_ses-01_run-08_task-video...

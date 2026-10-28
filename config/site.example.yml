@@ -9,6 +9,9 @@ display:
   expected_refresh_hz: 120
   full_screen: true
   skip_sync_tests: false
+  # Visible picture area in cm [width, height]; the run dialog then shows the
+  # viewing distance for stimulus.target_size_deg.
+  screen_size_cm: null
 paths:
   video_root: ''
   picture_root: ''

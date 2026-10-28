@@ -93,9 +93,21 @@ given: the old folder is then renamed `<name>_replaced-<HHMMSS>` and kept.
 The return value is the output directory. Schedules are stored in
 [`config/runs`](../config/runs/README.md), inside this repository.
 
-The dialog shows the output path and schedule while you type, and enables
-Start only for a valid request. Labels appear in folder names and manifests;
-use study codes rather than real names.
+The first row of the dialog chooses the site: every `config/site.*.yml` except
+the example, with the one in `config/active_site.yml` preselected and marked
+"(active)". Under it the dialog shows that site's screen size, resolution and
+refresh rate, and in bold the eye-to-screen distance that makes the movie
+`stimulus.target_size_deg` wide and high (14.42 × 8.14°), once
+`display.screen_size_cm` is set in the site file (see
+[configuration](configuration.md)). Place the participant at that distance.
+A site that is not approved for acquisition is flagged there. If you choose
+another site, Start writes it to `config/active_site.yml` (comments are kept),
+so this and later runs use it; Cancel changes nothing.
+
+Below that, enter subject, session, run, task and Overwrite as before. The
+dialog shows the output path and schedule while you type, and enables Start
+only for a valid request. Labels appear in folder names and manifests; use
+study codes rather than real names.
 
 Loading precedes the Space instruction screen. After Space, the video task
 presents the initial baseline, the saved sequence once, the final baseline and

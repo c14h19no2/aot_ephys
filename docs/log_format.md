@@ -42,7 +42,7 @@ manifest 的 `startup_loading` 保存实际预加载文件、数量、纹理预�
 | `*_markers.tsv` | 事件 ID、日志序号、命名 trigger／WAV、关联 Flip／输入、预约／音频时间、同步、取消及 `audio_qc_flags`。 |
 | `*_trial_qc.tsv` | 视频／记忆 trial 的时长、重复／跳帧、时间戳及 marker 检查；trigger 偏移按与本 run 中位数的差判定。 |
 | `*_resolved_config.json` | 本次实际合并后的配置。 |
-| `*_manifest.json` | 完成／中止状态、媒体信息（图片哈希；视频为准备时记录的哈希）、日程、版本、显示信息、两端基线、WAV 协议、实际音频设备和波形元数据。 |
+| `*_manifest.json` | 完成／中止状态、媒体信息（图片哈希；视频为准备时记录的哈希）、日程、版本、显示信息、观看距离（`viewing`）、两端基线、WAV 协议、实际音频设备和波形元数据。 |
 | `*_trigger_offsets.pdf` | 自动生成的两页 PDF：偏移随时间的散点图、偏移直方图；含范围、中位数、标准差，以及偏离中位数和偏离零超过参考值的次数。 |
 | `sources/` | 本次配置／日程／答案的原样副本及哈希。 |
 | `frame_maps/` | 按原视频名保存的帧映射 JSON，包含帧编号、PTS、内容校验和及解码来源。 |

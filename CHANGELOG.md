@@ -1,5 +1,29 @@
 # Changes
 
+## 2026-10-28 — Viewing distance for the target movie size
+
+- New `stimulus.target_size_deg` in `config/experiment.yml`, default
+  `[14.42, 8.14]` degrees, and new `display.screen_size_cm` (visible picture
+  width and height in cm, default `null`) for the site file.
+- `ephys.viewingDistance` computes the eye-to-screen distance at which the
+  fitted movie (window fit with `movie_scale`, at the target's aspect) has the
+  target angle: one distance per axis from the movie's size in cm, and their
+  mean. If the measured screen aspect differs from the resolution's, the angle
+  at that distance is reported as well.
+- The run dialog (560 × 360 px) starts with a site row: a dropdown of
+  `config/site.*.yml` (the site in `active_site.yml` preselected and marked
+  "(active)"), then that site's screen size, resolution and refresh rate, the
+  viewing distance in bold (or a request for `display.screen_size_cm`), and a
+  warning when it is not approved for acquisition. Subject, session, run, task
+  and Overwrite follow after a gap. Choosing another site and pressing Start
+  writes it to `active_site.yml`, keeping its comments; Cancel changes nothing.
+  New helpers: `ephys.siteChoices`, `ephys.setActiveSite`,
+  `ephys.siteSummary`, `ephys.siteSummaryText`.
+- The manifest saves the viewing distance as `viewing`. Invalid sizes stop a run
+  in `validateConfig` (`ephys:ScreenSize`, `ephys:TargetSize`); the dialog
+  shows them in red.
+- Verified 243 unit tests on MATLAB R2022b Update 10.
+
 ## 2026-10-28 — No video hashing at run start
 
 - A native video run no longer computes the SHA-256 of original videos and

@@ -109,6 +109,12 @@ manifest.python_source_revision = "";
 manifest.ordered_schedule = cellstr(session.Config.schedule);
 manifest.configuration_sources = sources;
 manifest.media = session.Inventory;
+% Suggested eye-to-screen distance for the configured screen and target angle.
+try
+    manifest.viewing = ephys.viewingDistance(session.Config);
+catch cause
+    manifest.viewing = struct('status',"invalid",'message',string(cause.message));
+end
 manifest.media_hash_scope = ...
     "SHA-256 at preflight; video bytes rechecked before and after each complete decode";
 manifest.trigger_backend = class(session.Triggers.Backend);
