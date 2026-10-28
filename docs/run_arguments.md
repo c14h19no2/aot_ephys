@@ -13,7 +13,7 @@ out = run_aot_ephys(sub,ses,run[,recordingNumber],'Name',value,...);
 | `ses` / `run` | 必填 | 正整数，与被试的日程编号一起选择保存的日程并命名输出。 |
 | 第 4 个 `recordingNumber` | 省略 | 正整数，输出追加 `_record-XX`；仅区分重复记录，`[]` 等同省略。 |
 | `'Task'` | `'video'` | `'video'` 或 `'memory'`。 |
-| `'Overwrite'` | `false` | 当天已有同名输出时，将旧文件夹改名为 `<名称>_replaced-<时分秒>` 后重新记录；不删除任何数据。为 `false` 时已有输出会在开始前报错。 |
+| `'Overwrite'` | `false` | 同名输出已存在（当天或更早日期）时仍重新记录。当天的旧文件夹改名为 `<名称>_replaced-<时分秒>` 保留；更早日期的文件夹保持不变，新记录写入当天文件夹。不删除任何数据。为 `false` 时已有输出会在开始前报错。 |
 | `'Site'` | `config/active_site.yml` 的 `site_file` | 临时覆盖默认选择，指定另一份 site YAML。 |
 | `'Schedule'` | 自动选择 | 自定义有序日程 YAML；日常运行无需自己构建日程变量。 |
 | `'SubjectMap'` | `config/subjects.local.yml` | 被试标签到日程编号的对应表；见下文。 |
@@ -49,6 +49,7 @@ subjects:
 ### 输入窗口
 
 不带参数调用 `run_aot_ephys()` 时，窗口依次询问被试、session、run、任务（video／memory）和
-Overwrite。窗口下方实时显示输出路径、所用日程及其来源；输入无效、日程不存在或当天已有同名输出
-（未勾选 Overwrite）时 Start 不可用。取消返回空字符串。窗口在开始前关闭，不会与实验窗口重叠。
+Overwrite。窗口下方实时显示输出路径、所用日程及其来源；输入无效、日程不存在，或当天或更早日期已有
+同名输出（未勾选 Overwrite）时 Start 不可用。勾选 Overwrite 只对当前显示的 run 有效，之后改变被试、
+session、run 或任务会自动取消勾选。取消返回空字符串。窗口在开始前关闭，不会与实验窗口重叠。
 需要记录编号、Debug 或其他选项时，请使用命令行形式。

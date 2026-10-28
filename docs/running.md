@@ -87,9 +87,12 @@ such as `patientname` (`sub-patientname`; letters and digits only, since
 underscores separate the parts of the output name) must be listed in the local
 `config/subjects.local.yml`, which maps labels to schedule sets. The optional
 fourth ID only labels the output recording. Output goes to
-`<output_root>/<yyyy-mm-dd>/<name>`. An existing output for the same day stops
-the run before it starts, unless `'Overwrite',true` (or the dialog checkbox) is
-given: the old folder is then renamed `<name>_replaced-<HHMMSS>` and kept.
+`<output_root>/<yyyy-mm-dd>/<name>`. If the same name already has an output
+folder, today or on an earlier day, the run stops before it starts, unless
+`'Overwrite',true` (or the dialog checkbox) is given. A folder from today is
+then renamed `<name>_replaced-<HHMMSS>` and kept; folders from earlier days are
+left as they are, and the new recording goes into today's folder. The manifest
+lists those earlier dates in `run_output.earlier_dates`.
 The return value is the output directory. Schedules are stored in
 [`config/runs`](../config/runs/README.md), inside this repository.
 

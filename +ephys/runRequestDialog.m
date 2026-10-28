@@ -8,11 +8,15 @@ function choice = runRequestDialog(varargin)
 % overwrite, or [] when cancelled. Each entry is checked with
 % ephys.previewRunRequest, which also receives any extra name-value arguments
 % (SubjectMap); a Site argument preselects that site. Start stays disabled until
-% the site file is valid and the request is valid with a free output folder.
+% the site file is valid and the request is valid. A run that already has an
+% output folder, today or on an earlier day, also needs Overwrite; the tick is
+% cleared whenever the entries name a different run.
 % The window is deleted before returning, so it never overlaps the PTB window.
 [site,options] = takeSite(varargin);
 choice = [];
 siteReady = false;
+previewRunId = "";   % run named by the latest preview
+confirmedRunId = ""; % run for which Overwrite was ticked
 sites = ephys.siteChoices();
 selected = max(sites.active,1);
 if strlength(site)>0
@@ -53,7 +57,7 @@ uilabel(grid,'Text','Task');
 taskField = uidropdown(grid,'Items',{'video','memory'},'Value','video','Tag','task');
 uilabel(grid,'Text','');
 overwriteField = uicheckbox(grid,'Tag','overwrite', ...
-    'Text','Overwrite (the existing folder is kept, renamed _replaced-<time>)');
+    'Text','Overwrite (record this run again; existing folders are kept)');
 previewLabel = uilabel(grid,'Text','','WordWrap','on', ...
     'VerticalAlignment','top','Tag','preview');
 previewLabel.Layout.Column = [1 2];
@@ -76,9 +80,10 @@ end
 siteField.ValueChangedFcn = @(~,~) changeSite();
 subjectField.ValueChangingFcn = @(~,event) refresh(event.Value);
 subjectField.ValueChangedFcn = @(~,~) refresh();
-for field = {sessionField,runField,taskField,overwriteField}
+for field = {sessionField,runField,taskField}
     field{1}.ValueChangedFcn = @(~,~) refresh();
 end
+overwriteField.ValueChangedFcn = @(~,~) confirmOverwrite();
 fig.CloseRequestFcn = @(~,~) delete(fig);
 changeSite();
 try
@@ -139,19 +144,31 @@ drawnow;
         if ~isempty(sites.paths), values.site = string(siteField.Value); end
         preview = struct('ok',false);
         startButton.Enable = false;
+        previewRunId = "";
         if ~siteReady
+            clearOverwrite();
             show("Choose a valid site first.",'error');
             return;
         end
         if strlength(values.subject)==0
+            clearOverwrite();
             show("Enter a subject number (3 becomes sub-003) or a label such as patientname.",'note');
             return;
         end
-        preview = ephys.previewRunRequest(values.subject,values.session,values.run, ...
-            'Task',values.task,'Overwrite',values.overwrite,'Site',values.site,options{:});
+        ask = @(overwrite) ephys.previewRunRequest(values.subject,values.session,values.run, ...
+            'Task',values.task,'Overwrite',overwrite,'Site',values.site,options{:});
+        preview = ask(values.overwrite);
         if strlength(preview.error)>0
+            clearOverwrite();
             show(preview.error,'error');
             return;
+        end
+        previewRunId = preview.run_id;
+        % A tick confirms only the run it was given for.
+        if values.overwrite && preview.run_id~=confirmedRunId
+            clearOverwrite();
+            values.overwrite = false;
+            preview = ask(false);
         end
         [~,scheduleName,scheduleExt] = fileparts(preview.schedule_path);
         source = "own number";
@@ -173,13 +190,29 @@ drawnow;
                 "nothing is deleted.";
             level = 'warning';
         end
-        if ~isempty(preview.other_dates)
-            lines(end+1) = "The same run name was also recorded on " + ...
-                strjoin(preview.other_dates,", ")+". Check the session number.";
+        if ~isempty(preview.other_dates) && ~values.overwrite
+            lines(end+1) = "Already recorded on "+strjoin(preview.other_dates,", ")+ ...
+                ". Check subject, session and run, or tick Overwrite to record it again.";
+            level = 'error';
+        elseif ~isempty(preview.other_dates)
+            lines(end+1) = "Recording again: this run is also in "+ ...
+                strjoin(preview.other_dates,", ")+"; that folder is not changed.";
             if level=="note", level = 'warning'; end
         end
         show(lines,level);
         startButton.Enable = preview.ok;
+    end
+
+    function confirmOverwrite()
+        % Ticking confirms the run shown now; any other run needs a new tick.
+        confirmedRunId = "";
+        if overwriteField.Value, confirmedRunId = previewRunId; end
+        refresh();
+    end
+
+    function clearOverwrite()
+        overwriteField.Value = false;
+        confirmedRunId = "";
     end
 
     function show(text,level)

@@ -1,5 +1,18 @@
 # Changes
 
+## 2026-10-28 — Overwrite also needed for runs recorded on an earlier day
+
+- A run name that already has an output folder from an earlier day now stops
+  before it starts, like one from today, unless Overwrite is given (dialog
+  checkbox or `'Overwrite',true`). Before, the dialog only warned and the
+  command line went ahead silently. With Overwrite the new recording goes into
+  today's folder; the earlier folder is left as it is (a folder from today is
+  still renamed `_replaced-<time>`). The manifest lists the earlier dates in
+  `run_output.earlier_dates`.
+- In the dialog a ticked Overwrite applies only to the run shown when it was
+  ticked; changing subject, session, run or task clears it.
+- Verified 249 unit tests on MATLAB R2022b Update 10.
+
 ## 2026-10-28 — Shorter refresh calibration at window open
 
 - The refresh-interval measurement after `Screen('OpenWindow')` now stops once

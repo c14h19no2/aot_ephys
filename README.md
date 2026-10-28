@@ -38,8 +38,9 @@ out = run_aot_ephys(1,1,1,'Task','memory');
   刷新率和观看距离；选择其他 site 并按 Start 时写入 `active_site.yml`。
 - 被试：数字补零到 3 位（`3` → `sub-003`）并使用同号日程；名称（只含字母和数字）原样保留，
   其日程编号写在 `config/subjects.local.yml`。
-- 输出：`<paths.output_root>/<采集日期 yyyy-mm-dd>/<输出名称>/`。当天已有同名输出时在开始前停止；
-  勾选／传入 Overwrite 时旧文件夹改名为 `_replaced-<时分秒>` 保留，不删除任何数据。
+- 输出：`<paths.output_root>/<采集日期 yyyy-mm-dd>/<输出名称>/`。当天或更早日期已有同名输出时在开始前
+  停止；勾选／传入 Overwrite 时重新记录：当天的旧文件夹改名为 `_replaced-<时分秒>` 保留，更早日期的
+  文件夹不变，不删除任何数据。
 - 按键：Space 开始；Q 中止并保存已记录部分，命令行显示 “Run stopped with Q.”，不报错；记忆任务用 J/K。
 
 详细说明：[运行](docs/running.md)、[输入参数](docs/run_arguments.md)、[配置参数](docs/configuration.md)、

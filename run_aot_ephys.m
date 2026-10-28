@@ -5,6 +5,9 @@ function [outputDir,status] = run_aot_ephys(subject,sessionNumber,runNumber,vara
 % Start makes the chosen site the one in config/active_site.yml.
 % out = run_aot_ephys(sub,ses,run[,recordingNumber],'Name',value,...)
 % Example: run_aot_ephys(1,1,8,2) repeats run 8 into a record-02 folder.
+% A run name already recorded today or on an earlier day stops unless
+% 'Overwrite',true: today's folder is then renamed _replaced-<time>, and
+% earlier days' folders are left as they are.
 % Output: <paths.output_root>/<yyyy-mm-dd>/sub-001_ses-01_run-08_task-video...
 % status is "complete", "aborted" (Q pressed; no error is raised) or
 % "cancelled" (dialog closed). Other failures raise an error after saving.
@@ -27,8 +30,15 @@ schedulePath = request.schedule_path;
 [config,provenance] = ephys.loadConfig(task,schedulePath, ...
     request.site_path,p.Debug,p.Answers,request.site_selection_path);
 config.run_identity = request.identity;
+% A run already recorded on another day also needs Overwrite; its earlier
+% folder is left as it is.
+earlier = ephys.earlierRecordings(config.paths.output_root,request.collection_date,request.run_id);
+assert(isempty(earlier) || p.Overwrite,'ephys:RecordedBefore', ...
+    ['%s was already recorded on %s (in %s). Check subject, session and run, ' ...
+    'or pass ''Overwrite'',true to record it again (the earlier folder is kept).'], ...
+    request.run_id,strjoin(earlier,", "),string(config.paths.output_root));
 config.run_output = struct('collection_date',request.collection_date, ...
-    'overwrite',p.Overwrite,'replaced_output',"");
+    'overwrite',p.Overwrite,'replaced_output',"",'earlier_dates',earlier);
 if task == "memory"
     if contains(schedulePath,"memory_main_complete")
         config.task.memory_variant = "main_memory_mainexp_complete";

@@ -2,8 +2,9 @@ function preview = previewRunRequest(subject,sessionNumber,runNumber,varargin)
 %PREVIEWRUNREQUEST Output folder and schedule that run_aot_ephys would use.
 % Takes run_aot_ephys's arguments and changes nothing. Invalid requests are
 % reported in preview.error instead of thrown, so a dialog can show them.
-% ok is true when the request is valid and its output folder is free today,
-% or Overwrite is set. viewing is ephys.viewingDistance for the selected site;
+% ok is true when the request is valid and the run has no output folder,
+% neither today nor on an earlier date, or Overwrite is set, as run_aot_ephys
+% requires. viewing is ephys.viewingDistance for the selected site;
 % invalid screen or target sizes give status "invalid" and do not affect ok.
 preview = struct('ok',false,'error',"",'run_id',"",'subject',"", ...
     'schedule_set',[],'schedule_set_source',"",'schedule_path',"", ...
@@ -30,8 +31,9 @@ preview.schedule_path = request.schedule_path;
 preview.collection_date = request.collection_date;
 preview.output_folder = string(fullfile(root,request.collection_date,request.run_id));
 preview.exists = isfolder(preview.output_folder) || isfile(preview.output_folder);
-preview.other_dates = otherDates(root,request.collection_date,request.run_id);
-preview.ok = ~preview.exists || request.options.Overwrite;
+preview.other_dates = ephys.earlierRecordings(root,request.collection_date,request.run_id);
+preview.ok = request.options.Overwrite || ...
+    (~preview.exists && isempty(preview.other_dates));
 end
 
 function [root,config] = outputRoot(request)
@@ -54,17 +56,4 @@ end
 root = string(config.paths.output_root);
 assert(strlength(root)>0,'ephys:OutputRoot', ...
     'Set paths.output_root in the site YAML %s.',request.site_path);
-end
-
-function dates = otherDates(root,today,runId)
-% Earlier collection dates that already hold this run ID.
-dates = strings(0,1);
-if ~isfolder(root), return; end
-entries = dir(root);
-names = string({entries([entries.isdir]).name});
-datePattern = digitsPattern(4)+"-"+digitsPattern(2)+"-"+digitsPattern(2);
-names = names(matches(names,datePattern) & names~=today);
-for name = names
-    if isfolder(fullfile(root,name,runId)), dates(end+1,1) = name; end %#ok<AGROW>
-end
 end

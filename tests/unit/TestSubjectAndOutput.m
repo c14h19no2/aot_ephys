@@ -117,6 +117,7 @@ classdef TestSubjectAndOutput < matlab.unittest.TestCase
             tc.verifyTrue(p.exists);
             tc.verifyFalse(p.ok);
             tc.verifyEqual(p.other_dates,"2026-01-02");
+            % Overwrite confirms both today's folder and the earlier date.
             replacing=ephys.previewRunRequest("patientname",1,8,args{:},'Overwrite',true);
             tc.verifyTrue(replacing.ok);
             tc.verifyTrue(replacing.exists);
@@ -125,6 +126,27 @@ classdef TestSubjectAndOutput < matlab.unittest.TestCase
                 tc.verifyFalse(p.ok);
                 tc.verifyGreaterThan(strlength(p.error),0);
             end
+        end
+        function runRecordedOnAnEarlierDayNeedsOverwrite(tc)
+            [site,root]=tc.siteWithOutput();
+            args={'Site',site,'SubjectMap',TestSubjectAndOutput.mapFixture()};
+            request=ephys.resolveRunRequest("patientname",1,8,args{:});
+            mkdir(fullfile(root,'2026-01-02',request.run_id));
+            tc.verifyEqual(ephys.earlierRecordings(root,request.collection_date,request.run_id),"2026-01-02");
+            tc.verifyEmpty(ephys.earlierRecordings(root,"2026-01-02",request.run_id));
+            tc.verifyEmpty(ephys.earlierRecordings(fullfile(root,'missing'),request.collection_date,request.run_id));
+            % The command line stops before creating today's folder or opening devices.
+            tc.verifyError(@() run_aot_ephys("patientname",1,8,args{:}),'ephys:RecordedBefore');
+            tc.verifyFalse(isfolder(fullfile(root,request.collection_date)));
+            p=ephys.previewRunRequest("patientname",1,8,args{:});
+            tc.verifyFalse(p.ok);
+            tc.verifyFalse(p.exists);
+            p=ephys.previewRunRequest("patientname",1,8,args{:},'Overwrite',true);
+            tc.verifyTrue(p.ok);
+            % Overwrite never touches the earlier day's folder.
+            tc.verifyTrue(isfolder(fullfile(root,'2026-01-02',request.run_id)));
+            % Another run of the same subject is not affected.
+            tc.verifyTrue(ephys.previewRunRequest("patientname",1,7,args{:}).ok);
         end
         function previewIncludesTheViewingDistanceOfTheSite(tc)
             [site,~]=tc.siteWithOutput();
