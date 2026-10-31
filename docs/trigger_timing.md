@@ -324,6 +324,10 @@ photodiode can.
    `photodiode.approved_placement: true` and a corner rectangle, for example
    `rect_px: [0, 0, 60, 60]`. It is white during every movie and black
    otherwise, so each movie onset gives a rising edge. Blanks have no patch.
+   With full-window movies the patch covers that corner of the movie, which
+   the approval accepts. Keep the same corner for both modes: a patch at the
+   top of the screen lights up almost one refresh earlier than one at the
+   bottom.
 2. Record the photodiode and the trigger output on two channels of the same
    recording system.
 3. Run once with `display.steady_flip: false` and once with `true`, as

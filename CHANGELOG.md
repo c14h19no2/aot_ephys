@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-31 — Approved photodiode patch may cover the movie
+
+- With `photodiode.approved_placement: true` the photodiode patch may now
+  cover part of the stimulus, such as a corner of a full-window movie. Before,
+  any overlap stopped the run (`ephys:PhotodiodeOverlap`), so with movies that
+  fill the window no rectangle was possible. An unapproved overlap still stops
+  it, and the patch must still lie inside the window.
+- The photodiode settings are commented in `config/experiment.yml` and
+  described in `docs/configuration.md`.
+- Verified 250 unit tests on MATLAB R2022b Update 10.
+
 ## 2026-10-28 — Overwrite also needed for runs recorded on an earlier day
 
 - A run name that already has an output folder from an earlier day now stops

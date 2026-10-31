@@ -106,10 +106,18 @@ markers:
     # Trial QC flags offsets more than this from the run's median offset;
     # also the reporting reference. Exceeding it never aborts the run.
     max_sync_error_s: 0.002
+# A square drawn into the stimulus image for a light sensor: on_rgb255 while a
+# movie is shown (onset to offset Flip), off_rgb255 at all other times. Set it
+# per site; see docs/configuration.md.
 photodiode:
   enabled: false
+  # Required with enabled: the site accepts the visible square, including any
+  # part of the movie it covers (a corner of a full-window movie).
   approved_placement: false
+  # Also on for one refresh at the start of each pre-fixation (trial start).
   fixation_onset_enabled: false
+  # [left, top, right, bottom] in window pixels, inside the window, e.g.
+  # [0, 0, 60, 60]. Top rows are scanned out first, so keep one position.
   rect_px: null
   on_rgb255: [255, 255, 255]
   off_rgb255: [0, 0, 0]

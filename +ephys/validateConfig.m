@@ -206,8 +206,8 @@ if c.photodiode.enabled
         rect(1)>=0 && rect(2)>=0 && rect(3)<=w && rect(4)<=h && ...
         rect(3)>rect(1) && rect(4)>rect(2), ...
         'ephys:PhotodiodeRect','Photodiode rectangle is outside display.');
-    % Overlap with each fitted stimulus is checked by mediaInventory before
-    % opening PTB, once actual source dimensions are available.
+    % The approved patch may cover part of the stimulus (mediaInventory checks
+    % the overlap once source dimensions are known); it must stay in the window.
     onColor = cell2mat(c.photodiode.on_rgb255);
     offColor = cell2mat(c.photodiode.off_rgb255);
     assert(numel(onColor)==3 && numel(offColor)==3 && ...

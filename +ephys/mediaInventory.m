@@ -50,12 +50,17 @@ for i = 1:numel(inventory)
     inventory(i).display_rect_px = ephys.movieRect(config, ...
         [inventory(i).width_px, inventory(i).height_px]);
     if isfield(config,'photodiode') && config.photodiode.enabled
+        % The patch is drawn over the stimulus; covering part of it (such as
+        % a corner of a full-window movie) needs an approved placement.
         diode = cell2mat(config.photodiode.rect_px);
         stimulus = inventory(i).display_rect_px;
         overlap = diode(1)<stimulus(3) && diode(3)>stimulus(1) && ...
             diode(2)<stimulus(4) && diode(4)>stimulus(2);
-        assert(~overlap,'ephys:PhotodiodeOverlap', ...
-            'Photodiode rectangle overlaps stimulus %s.',inventory(i).name);
+        approved = isfield(config.photodiode,'approved_placement') && ...
+            isequal(config.photodiode.approved_placement,true);
+        assert(~overlap || approved,'ephys:PhotodiodeOverlap', ...
+            ['Photodiode rectangle overlaps stimulus %s. Set ' ...
+            'photodiode.approved_placement: true to accept covering it.'],inventory(i).name);
     end
 end
 end

@@ -101,12 +101,32 @@ classdef TestStimulusGeometry < matlab.unittest.TestCase
             inventory = ephys.mediaInventory(config);
             tc.verifyEqual([inventory.width_px,inventory.height_px],[16,9]);
             tc.verifyEqual(inventory.display_rect_px,[0,45,1440,855],'AbsTol',1e-10);
-            % A diode can use an actual gray border, but cannot cover the image.
+            % A diode can use an actual gray border; covering the image needs approval.
             config.photodiode = struct('enabled',true,'rect_px',{{0,0,20,20}});
             inventory = ephys.mediaInventory(config);
             tc.verifyEqual(inventory.display_rect_px,[0,45,1440,855],'AbsTol',1e-10);
             config.photodiode.rect_px = {0,50,20,70};
             tc.verifyError(@() ephys.mediaInventory(config),'ephys:PhotodiodeOverlap');
+            config.photodiode.approved_placement = false;
+            tc.verifyError(@() ephys.mediaInventory(config),'ephys:PhotodiodeOverlap');
+            config.photodiode.approved_placement = true;
+            inventory = ephys.mediaInventory(config);
+            tc.verifyEqual(inventory.display_rect_px,[0,45,1440,855],'AbsTol',1e-10);
+        end
+
+        function approvedDiodeMayCoverACornerOfAFullWindowMovie(tc)
+            root = ephys.projectRoot();
+            [c,~] = ephys.loadConfig("video",fullfile(root,'config','runs','debug_blank.yml'), ...
+                testSite(),true,"");
+            c.photodiode.enabled = true;
+            c.photodiode.rect_px = {0,0,60,60};
+            tc.verifyError(@() ephys.validateConfig(c),'ephys:PhotodiodeApproval');
+            c.photodiode.approved_placement = true;
+            ephys.validateConfig(c);
+            % It must still lie inside the window.
+            resolution = cell2mat(c.display.resolution_px);
+            c.photodiode.rect_px = {resolution(1)-50,0,resolution(1)+10,60};
+            tc.verifyError(@() ephys.validateConfig(c),'ephys:PhotodiodeRect');
         end
 
         function invalidSourceDimensionsFailBeforeDrawing(tc)

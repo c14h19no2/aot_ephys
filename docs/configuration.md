@@ -122,6 +122,11 @@ protocol:
 | `stimulus.fixation.dot_diameter_deg` / `outline_width_deg` | 黑色中心点直径（默认 0.03654°）及可选白色描边宽度（以点的边缘为中心；默认 `0`，不画描边；原说明为 0.00788°）。 |
 | `stimulus.fixation.line_width_deg` | 过中心 45° 和 135° 两条白色贯穿线的宽度（默认 0.00788°），在中心点之前绘制（点在线之上），并做抗锯齿。 |
 | `stimulus.fixation.line_rgb255` / `outline_rgb255` / `dot_rgb255` / `surround_rgb255` | 线、描边、点和底衬的颜色；底衬与背景同为 128 灰。 |
+| `photodiode.enabled` | 光电二极管方块总开关，默认 `false`。开启后每一帧都在 `rect_px` 处画一个实心方块，位于影片、注视点和文字之上：影片显示期间（首帧 Flip 到移除末帧的 Flip）为 `on_rgb255`，其余时间（加载、指导语、基线、注视、blank、记忆图片、run 开始／结束）为 `off_rgb255`。每次 Flip 在 flips 日志记录 `photodiode_state`，影片 onset／offset 事件记录 `photodiode_transition`。 |
+| `photodiode.approved_placement` | 开启方块时必须为 `true`，表示该 site 接受这个对受试者可见的方块，包括它遮住的影片部分（如全屏影片的一角）。否则运行在配置检查时停止。 |
+| `photodiode.rect_px` | 方块位置 `[left, top, right, bottom]`（窗口像素，整数），必须在窗口内，例如左上角 `[0, 0, 60, 60]`。液晶屏自上而下刷新，顶部方块比底部早将近一帧亮起，请固定一个位置。 |
+| `photodiode.on_rgb255` / `off_rgb255` | 方块的亮／暗颜色，默认白 `[255,255,255]`／黑 `[0,0,0]`；两者必须不同。 |
+| `photodiode.fixation_onset_enabled` | 另在每个 trial 预注视开始时亮一帧，下一次刷新熄灭（事件 `photodiode_off`），标记 trial 开始；预注视至少需两帧。默认 `false`。 |
 | `playback.ffmpeg_path` / `ffprobe_path` | 仅离线准备副本及旧 `frames` 播放器使用；空值时自动查找。正式 `native` 运行忽略这些字段。 |
 | `playback.backend` | 默认 `native`：独立 PTB 句柄与滚动提前准备；`frames`：保留旧的完整 RGB 解码和纹理缓存播放器。 |
 | `playback.python_path` | 离线准备所用 Python；空值使用 `python3`。仅需 Python 标准库。 |

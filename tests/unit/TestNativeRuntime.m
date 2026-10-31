@@ -77,6 +77,8 @@ classdef TestNativeRuntime < matlab.unittest.TestCase
             c.protocol.video_duration_s=.12;
             c.photodiode=struct('enabled',true,'rect_px',{{280,100,300,120}});
             tc.verifyError(@() ephys.mediaInventory(c),'ephys:PhotodiodeOverlap');
+            c.photodiode.approved_placement=true;
+            tc.verifyNumElements(ephys.mediaInventory(c),1);
         end
 
         function offlinePreparationStillRequiresTools(tc)
