@@ -10,13 +10,15 @@ function choice = runRequestDialog(varargin)
 % (SubjectMap); a Site argument preselects that site. Start stays disabled until
 % the site file is valid and the request is valid. A run that already has an
 % output folder, today or on an earlier day, also needs Overwrite; the tick is
-% cleared whenever the entries name a different run.
+% cleared whenever the entries name a different run. Memory schedules exist
+% only as run 1 of each session, so the memory task fixes Run at 1.
 % The window is deleted before returning, so it never overlaps the PTB window.
 [site,options] = takeSite(varargin);
 choice = [];
 siteReady = false;
 previewRunId = "";   % run named by the latest preview
 confirmedRunId = ""; % run for which Overwrite was ticked
+videoRun = 1;        % run number restored when switching back to video
 sites = ephys.siteChoices();
 selected = max(sites.active,1);
 if strlength(site)>0
@@ -80,9 +82,10 @@ end
 siteField.ValueChangedFcn = @(~,~) changeSite();
 subjectField.ValueChangingFcn = @(~,event) refresh(event.Value);
 subjectField.ValueChangedFcn = @(~,~) refresh();
-for field = {sessionField,runField,taskField}
+for field = {sessionField,runField}
     field{1}.ValueChangedFcn = @(~,~) refresh();
 end
+taskField.ValueChangedFcn = @(~,~) changeTask();
 overwriteField.ValueChangedFcn = @(~,~) confirmOverwrite();
 fig.CloseRequestFcn = @(~,~) delete(fig);
 changeSite();
@@ -201,6 +204,19 @@ drawnow;
         end
         show(lines,level);
         startButton.Enable = preview.ok;
+    end
+
+    function changeTask()
+        % The memory test has one schedule per session, saved as run 1.
+        if taskField.Value=="memory"
+            videoRun = runField.Value;
+            runField.Value = 1;
+            runField.Enable = false;
+        else
+            runField.Enable = true;
+            runField.Value = videoRun;
+        end
+        refresh();
     end
 
     function confirmOverwrite()

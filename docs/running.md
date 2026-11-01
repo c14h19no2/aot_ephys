@@ -108,8 +108,10 @@ another site, Start writes it to `config/active_site.yml` (comments are kept),
 so this and later runs use it; Cancel changes nothing.
 
 Below that, enter subject, session, run, task and Overwrite as before. The
-dialog shows the output path and schedule while you type, and enables Start
-only for a valid request. Labels appear in folder names and manifests; use
+memory test has one schedule per session, saved as run 1, so choosing the
+memory task sets Run to 1 and greys it out (switching back to video restores
+the previous run). The dialog shows the output path and schedule while you
+type, and enables Start only for a valid request. Labels appear in folder names and manifests; use
 study codes rather than real names.
 
 Loading precedes the Space instruction screen. After Space, the video task

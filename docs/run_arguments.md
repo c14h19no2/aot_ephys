@@ -27,11 +27,11 @@ out = run_aot_ephys(sub,ses,run[,recordingNumber],'Name',value,...);
 
 每次记录保存到 `<paths.output_root>/<采集日期 yyyy-mm-dd>/<输出名称>/`。例如 2026-10-26 运行
 `run_aot_ephys(1,1,8,2)` 的输出为 `2026-10-26/sub-001_ses-01_run-08_task-video_record-02`，Debug 再加 `_debug`。
-同一名称在不同日期各自保存；输入窗口会提示该名称在其他日期已有记录。
+同一名称当天或更早日期已有输出时，需 Overwrite 才会重新记录：当天的旧文件夹改名保留，更早日期的文件夹不变。
 
 输出的 `run_identity` 保存被试标签（文本）、session、run、可选记录编号、实际使用的日程编号
-`schedule_set` 及其来源 `schedule_set_source`；`run_output` 保存采集日期、`overwrite` 和被改名的旧文件夹
-`replaced_output`（无则为空）。
+`schedule_set` 及其来源 `schedule_set_source`；`run_output` 保存采集日期、`overwrite`、被改名的旧文件夹
+`replaced_output`（无则为空）和已有同名记录的更早日期 `earlier_dates`。
 
 ### 被试标签与日程编号
 
@@ -51,5 +51,6 @@ subjects:
 不带参数调用 `run_aot_ephys()` 时，窗口依次询问被试、session、run、任务（video／memory）和
 Overwrite。窗口下方实时显示输出路径、所用日程及其来源；输入无效、日程不存在，或当天或更早日期已有
 同名输出（未勾选 Overwrite）时 Start 不可用。勾选 Overwrite 只对当前显示的 run 有效，之后改变被试、
-session、run 或任务会自动取消勾选。取消返回空字符串。窗口在开始前关闭，不会与实验窗口重叠。
+session、run 或任务会自动取消勾选。记忆日程每个 session 只有 run 1，因此任务选 memory 时 Run 固定为 1
+并变灰，切回 video 时恢复原来的 run。取消返回空字符串。窗口在开始前关闭，不会与实验窗口重叠。
 需要记录编号、Debug 或其他选项时，请使用命令行形式。

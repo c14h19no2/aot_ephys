@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-11-01 — Memory task fixes Run at 1 in the dialog
+
+- All memory schedules are saved as run 1 of their session, so choosing the
+  memory task in the run dialog sets Run to 1 and greys it out; switching
+  back to video restores the previous run number. The command line is
+  unchanged.
+
 ## 2026-10-31 — Approved photodiode patch may cover the movie
 
 - With `photodiode.approved_placement: true` the photodiode patch may now
