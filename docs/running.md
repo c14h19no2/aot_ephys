@@ -29,7 +29,8 @@ global path.
 
 Edit `config/site.local.yml` for this computer:
 
-- `paths.video_root`: original movies.
+- `paths.video_root`: original movies. Needed to prepare copies and to check
+  originals; a run computer can leave it empty (see below).
 - `playback.native_media_root`: prepared MP4/JSON pairs.
 - `paths.practice_video_root` and `playback.practice_native_media_root`: the
   practice clips and their prepared copies, in separate folders, when using
@@ -73,6 +74,14 @@ verify_aot_ephys_media();        % All MP4 files in the selected video root.
 It prints each mismatch (`map_missing`, `map_invalid`, `original_missing`,
 `original_changed`, `native_missing`, `native_changed`) and warns if any are
 found; `results = verify_aot_ephys_media(...)` also returns one row per video.
+
+Runs play only the copies, so a run computer does not need the original
+movies: copy the MP4/JSON pairs and leave `paths.video_root` (or
+`paths.practice_video_root`) empty. Each original found there is still listed
+in the manifest with its size; a missing one is recorded with
+`original_present: false` and an unknown size. Without originals,
+`verify_aot_ephys_media(1,1,8)` or `verify_aot_ephys_media('Task','practice')`
+checks the copies only; preparation and the all-videos check need them.
 
 The practice clips (`paths.practice_video_root`) need playback copies too.
 They are kept apart from the main videos: their copies go into their own

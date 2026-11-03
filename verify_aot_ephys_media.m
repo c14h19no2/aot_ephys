@@ -8,15 +8,24 @@ function varargout=verify_aot_ephys_media(varargin)
 % verify_aot_ephys_media(sub,ses,run,...) checks the videos of one saved schedule.
 % verify_aot_ephys_media('Task','practice') checks the practice clips.
 % results=verify_aot_ephys_media(...) also returns one table row per video.
+% On a run computer without originals (original-video folder not set), a
+% schedule or the practice clips can still be checked: copies only.
 request=ephys.resolveNativePreparation(varargin{:});
 count=numel(request.sources);
+checkOriginals=strlength(request.video_root)>0;
 fprintf('Verifying %d videos (%s) against their native maps...\n',count,request.mode);
+if ~checkOriginals
+    fprintf('No original-video folder is set: checking the native copies only.\n');
+end
 began=tic;
 step=max(1,round(count/10));
 results=ephys.verifyNativeMedia(request.sources,request.playback, ...
-    @(k,n) showProgress(k,n,step,began));
+    @(k,n) showProgress(k,n,step,began),checkOriginals);
 problems=results(~results.ok,:);
-if isempty(problems)
+if isempty(problems) && ~checkOriginals
+    fprintf('All %d native copies match their maps (%.0f s); originals not checked.\n', ...
+        count,toc(began));
+elseif isempty(problems)
     fprintf('All %d videos match their native maps (%.0f s).\n',count,toc(began));
 else
     for k=1:height(problems)

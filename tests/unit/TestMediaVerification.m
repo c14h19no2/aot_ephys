@@ -41,6 +41,19 @@ classdef TestMediaVerification < matlab.unittest.TestCase
             tc.verifyEqual(results.issues,"map_missing|original_missing|native_missing");
             tc.verifyFalse(results.ok);
         end
+        function copiesAloneCanBeChecked(tc)
+            [f,guard]=TestMediaVerification.fixture(); %#ok<ASGLU>
+            delete(f.original);
+            % A run computer without originals: they are not checked, so
+            % their state and hash stay unknown.
+            results=ephys.verifyNativeMedia("test_fw.mp4",f.playback,[],false);
+            tc.verifyTrue(results.ok);
+            tc.verifyEqual(results.original_sha256,"");
+            tc.verifyEqual(results.native_sha256,string(f.map.sha256));
+            TestMediaVerification.append(f.native);
+            results=ephys.verifyNativeMedia("test_fw.mp4",f.playback,[],false);
+            tc.verifyEqual(results.issues,"native_changed");
+        end
         function progressIsReportedForEveryFile(tc)
             [f,guard]=TestMediaVerification.fixture(); %#ok<ASGLU>
             seen=zeros(0,2);

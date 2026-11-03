@@ -6,6 +6,12 @@ function folder=prepare_aot_ephys_native_media(varargin)
 % prepare_aot_ephys_native_media(sub,ses,run,...) prepares a saved schedule only.
 % prepare_aot_ephys_native_media('Task','practice') prepares the practice clips.
 request=ephys.resolveNativePreparation(varargin{:});
+% Preparation converts the originals, so each one must be present here.
+missing=request.sources(~isfile(request.sources));
+assert(strlength(request.video_root)>0 && isempty(missing),'ephys:VideoRoot', ...
+    ['Preparation needs the original videos: %d of %d are missing from "%s". ' ...
+    'Set paths.video_root (paths.practice_video_root for practice) in the site YAML.'], ...
+    numel(missing),numel(request.sources),request.video_root);
 playback=ephys.resolveVideoTools(request.playback);
 folder=ephys.nativeMediaRoot(playback);
 temporary=tempname; mkdir(temporary);

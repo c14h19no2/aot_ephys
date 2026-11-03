@@ -48,6 +48,10 @@ if string(taskKind) == "practice"
     end
     config.playback.native_media_root = config.playback.practice_native_media_root;
 end
+% Native runs may leave the original-video folder unset (null or empty).
+if isempty(config.paths.video_root)
+    config.paths.video_root = '';
+end
 config.task_kind = string(taskKind);
 config.schedule_path = string(schedulePath);
 config.site_path = string(sitePath);

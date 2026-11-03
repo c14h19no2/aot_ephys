@@ -21,6 +21,8 @@ manifest 的 `native_trials` 保存每次呈现的解码 PTS、推定源帧顺�
 运行开始时只检查映射有效、播放副本存在，不计算视频文件哈希：manifest `media` 中视频的 `sha256`
 为空，`native_map` 的 `source_sha256`／`sha256` 是准备时记录的值，运行时未核对。需要核对时在实验外
 运行 `verify_aot_ephys_media`（见 [运行](running.md)）。实验期间应保持素材目录不变。
+运行只读取播放副本，原视频可以不在本机：`media[].original_present` 记录原视频是否在
+`paths.video_root` 中找到；不在时 `size_bytes` 为空（未知）。
 加载界面不计入开头基线；基线在 Space 确认之后独立开始。
 
 `startup_loading_start/end`、`startup_movie_load_start/end` 和 `loading` 阶段 Flip

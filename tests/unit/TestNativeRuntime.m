@@ -30,6 +30,35 @@ classdef TestNativeRuntime < matlab.unittest.TestCase
             job.finish("aborted","Constructor-only dependency test; no presentation");
         end
 
+        function originalsAreOptionalForNativeRuns(tc)
+            [fixture,~,folder,guard]=TestNativeRuntime.fixture(); %#ok<ASGLU>
+            [c,p]=TestNativeRuntime.sessionConfig(fixture,folder);
+            inventory=ephys.mediaInventory(c);
+            tc.verifyTrue(inventory.original_present);
+            tc.verifyEqual(inventory.size_bytes,numel('original fixture bytes'));
+            original=fullfile(c.paths.video_root,'test_fw.mp4');
+            delete(original);
+            ephys.validateConfig(c);   % native playback reads only the copies
+            inventory=ephys.mediaInventory(c);
+            tc.verifyFalse(inventory.original_present);
+            tc.verifyTrue(isnan(inventory.size_bytes));   % unknown, not zero
+            tc.verifyTrue(isfile(inventory.native_path));
+            % The frames backend decodes the originals, so it still needs them.
+            frames=c; frames.playback.backend='frames';
+            tc.verifyError(@() ephys.validateConfig(frames),'ephys:MissingVideo');
+            frames.paths.video_root='';
+            tc.verifyError(@() ephys.validateConfig(frames),'ephys:VideoRoot');
+            % With no original folder at all, a session still starts.
+            c.paths.video_root='';
+            ephys.validateConfig(c);
+            job=ephys.Session(c,p,"native_runtime",ephys.DummyTriggerBackend());
+            cleanup=onCleanup(@() job.close());
+            tc.verifyFalse(job.Inventory.original_present);
+            tc.verifyTrue(isfile(fullfile(job.OutputDir,'frame_maps','test_fw.json')));
+            job.stopPresentation();
+            job.finish("aborted","Constructor-only test without originals; no presentation");
+        end
+
         function missingMediaStopsSessionWithoutCleanupWarnings(tc)
             [fixture,~,folder,guard]=TestNativeRuntime.fixture(); %#ok<ASGLU>
             [c,p]=TestNativeRuntime.sessionConfig(fixture,folder);

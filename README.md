@@ -60,7 +60,8 @@ out = run_aot_ephys(1,1,1,'Task','practice');  % 第一次 session 前的练习�
 | 原始 WAV | [assets/triggers/](assets/triggers) |
 
 配置合并顺序：`experiment.yml → 所选 site → debug.yml（仅 Debug）`。视频、播放副本和图片放在仓库之外，
-由 site 指定。
+由 site 指定。运行只读取播放副本：采集电脑只需复制 MP4／JSON 播放副本，`paths.video_root`
+（练习为 `paths.practice_video_root`）可以留空；准备副本和核对原视频时才需要原视频。
 
 正式播放使用预先准备的无损播放副本，运行时不调用 FFmpeg／Python。只在准备副本的电脑上运行：
 

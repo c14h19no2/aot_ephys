@@ -77,12 +77,7 @@ classdef TestPracticeTask < matlab.unittest.TestCase
                 'ephys:NativePreparationTask');
         end
         function practiceNeedsItsOwnCopyFolder(tc)
-            settings = ephys.readYaml(testSite());
-            settings.playback = rmfield(settings.playback,'practice_native_media_root');
-            folder = tempname; mkdir(folder);
-            guard = onCleanup(@() rmdir(folder,'s')); %#ok<NASGU>
-            site = fullfile(folder,'site.yml');
-            yaml.dumpFile(site,settings,'block');
+            [site,guard] = TestPracticeTask.siteWithout('playback','practice_native_media_root'); %#ok<ASGLU>
             schedule = fullfile(ephys.projectRoot(),'config','runs','practice','practice_videos.yml');
             for attempt = {@() ephys.loadConfig("practice",schedule,site,false,""), ...
                     @() ephys.resolveNativePreparation('Task','practice','Site',site)}
@@ -99,8 +94,35 @@ classdef TestPracticeTask < matlab.unittest.TestCase
             [c,~] = ephys.loadConfig(main.task,main.schedule_path,main.site_path,false,"");
             tc.verifyEqual(c.task_kind,"video");
         end
+        function practiceOriginalsAreOptional(tc)
+            % A run computer may hold only the prepared copies.
+            [site,guard] = TestPracticeTask.siteWithout('paths','practice_video_root'); %#ok<ASGLU>
+            schedule = fullfile(ephys.projectRoot(),'config','runs','practice','practice_videos.yml');
+            [c,~] = ephys.loadConfig("practice",schedule,site,false,"");
+            tc.verifyEqual(string(c.paths.video_root),"");
+            r = ephys.resolveNativePreparation('Task','practice','Site',site);
+            tc.verifyEqual(r.video_root,"");
+            tc.verifyNumElements(r.sources,16);
+            % Preparation converts the originals, so it stops.
+            tc.verifyError(@() prepare_aot_ephys_native_media('Task','practice','Site',site), ...
+                'ephys:VideoRoot');
+            % Verification checks only the copies (none are prepared here).
+            results = tc.verifyWarning(@() verify_aot_ephys_media('Task','practice','Site',site), ...
+                'ephys:MediaVerification');
+            tc.verifyTrue(all(results.issues=="map_missing|native_missing"));
+            tc.verifyTrue(all(results.original_sha256==""));
+        end
     end
     methods (Static)
+        function [site,guard] = siteWithout(section,field)
+            % The isolated test site without one setting.
+            settings = ephys.readYaml(testSite());
+            settings.(section) = rmfield(settings.(section),field);
+            folder = tempname; mkdir(folder);
+            guard = onCleanup(@() rmdir(folder,'s'));
+            site = fullfile(folder,'site.yml');
+            yaml.dumpFile(site,settings,'block');
+        end
         function names = schedule()
             doc = ephys.readYaml(fullfile(ephys.projectRoot(),'config','runs','practice','practice_videos.yml'));
             names = ephys.validateSchedule(doc.stimuli.movie_files);

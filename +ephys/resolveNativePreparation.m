@@ -5,7 +5,8 @@ function request=resolveNativePreparation(varargin)
 % 'Task','practice' the clips of the shared practice schedule in
 % paths.practice_video_root, whose copies go to playback.practice_native_media_root.
 % With subject, session and run: that schedule's videos ('Task','practice'
-% also works there).
+% also works there). For a schedule, video_root may be empty: verification
+% then checks the native copies only, and preparation stops.
 root=ephys.projectRoot();
 % A text first argument is a subject label when a session number follows it.
 if nargin==0 || ((ischar(varargin{1}) || isstring(varargin{1})) && ...
@@ -35,19 +36,25 @@ if nargin==0 || ((ischar(varargin{1}) || isstring(varargin{1})) && ...
     end
     field='video_root';
     if task=="practice", field='practice_video_root'; end
-    assert(ischar(c.paths.(field)) || isstring(c.paths.(field)), ...
-        'ephys:VideoRoot','Set paths.%s to the original video directory in the site YAML.',field);
-    videoRoot=strtrim(string(c.paths.(field)));
-    assert(isscalar(videoRoot) && ~ismissing(videoRoot) && ...
-        strlength(videoRoot)>0 && isfolder(videoRoot), ...
-        'ephys:VideoRoot','Original video directory is missing: %s. Set paths.%s in the site YAML.', ...
-        videoRoot,field);
+    videoRoot="";
+    if ~isempty(c.paths.(field))
+        assert(ischar(c.paths.(field)) || isstring(c.paths.(field)), ...
+            'ephys:VideoRoot','Set paths.%s to the original video directory in the site YAML.',field);
+        videoRoot=strtrim(string(c.paths.(field)));
+    end
     if task=="practice"
+        % The schedule lists the clips, so verifying copies needs no
+        % originals; preparation checks for them itself.
         schedule=ephys.readYaml(fullfile(root,'config','runs','practice','practice_videos.yml'));
         names=ephys.validateSchedule(schedule.stimuli.movie_files);
         names=unique(names(names~="blank"),'stable');
         mode="practice schedule";
     else
+        % Listing every MP4 needs the original folder.
+        assert(isscalar(videoRoot) && ~ismissing(videoRoot) && ...
+            strlength(videoRoot)>0 && isfolder(videoRoot), ...
+            'ephys:VideoRoot','Original video directory is missing: %s. Set paths.%s in the site YAML.', ...
+            videoRoot,field);
         entries=dir(videoRoot); entries=entries(~[entries.isdir]);
         names=sort(string({entries.name})');
         % Skip hidden files such as macOS "._name.mp4" sidecars from copied folders.

@@ -116,8 +116,8 @@ protocol:
 | `display.refresh_guard_min_fraction` | 初始基线结束时的刷新检查：基线固定网格刷新槽中实际提交的最低比例，默认 `0.9`。低于该值时在第一个 trial 之前停止运行，按中止保存；基线不足 1 s 时只记录、不判定；`null` 关闭判定。 |
 | `display.steady_flip` | 视频任务的 onset 呈现方式，默认 `true`：在每个带 WAV 的 onset 之前逐帧刷新注视画面直到 onset 所在刷新，使每个 onset 前显示管线状态相同。site 中设为 `false` 时改为首帧提前绘制并保持到定时 Flip。两种模式的比较方法见 [trigger_timing.md](trigger_timing.md#10-held-and-steady-onset-modes)。 |
 | `input_device_index` | PTB 键盘编号；`-1` 使用默认设备。 |
-| `paths.video_root` / `picture_root` | 日程中原始 MP4／PNG 所在目录。 |
-| `paths.practice_video_root` | 练习视频原文件目录（`S_` 正向、`R_S_` 反向），供 `'Task','practice'` 使用；其播放副本放在单独的 `playback.practice_native_media_root`。 |
+| `paths.video_root` / `picture_root` | 日程中原始 MP4／PNG 所在目录。准备播放副本和核对原视频时需要；原生播放的采集电脑可以留空（只读取播放副本），记忆任务的图片必须存在。 |
+| `paths.practice_video_root` | 练习视频原文件目录（`S_` 正向、`R_S_` 反向），供 `'Task','practice'` 使用；其播放副本放在单独的 `playback.practice_native_media_root`。与 `video_root` 一样，只在准备副本和核对原视频时需要。 |
 | `paths.output_root` | 每次记录的输出父目录；`run_aot_ephys` 在其下按采集日期 `yyyy-mm-dd` 建子文件夹。 |
 | `stimulus.fixation.surround_diameter_deg` / `surround_fringe` | 灰色圆形底衬的外径（视角度，默认 0.18270°）及边缘比例（默认 0.3）：半径内 70% 不透明，外 30% 按升余弦（PsychoPy `raisedCosine`）渐变到透明。在灰色背景上不可见，叠在视频上为柔边灰盘。 |
 | `stimulus.fixation.dot_diameter_deg` / `outline_width_deg` | 黑色中心点直径（默认 0.03654°）及可选白色描边宽度（以点的边缘为中心；默认 `0`，不画描边；原说明为 0.00788°）。 |

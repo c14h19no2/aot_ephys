@@ -182,7 +182,10 @@ for i = 1:numel(c.schedule)
         'ephys:Condition','Scheduled asset has no recognized direction: %s', ...
         c.schedule(i));
 end
-if c.task_kind == "video" && any(c.schedule ~= "blank")
+if c.task_kind == "video" && any(c.schedule ~= "blank") && ...
+        string(c.playback.backend) == "frames"
+    % Only the frames backend decodes the originals; native playback reads
+    % the prepared copies, so originals are optional on a run computer.
     assert(strlength(string(c.paths.video_root))>0,'ephys:VideoRoot', ...
         'Video root is required.');
     paths = fullfile(string(c.paths.video_root),c.schedule);

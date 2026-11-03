@@ -1,9 +1,12 @@
-function results=verifyNativeMedia(sources,playback,progressFcn)
+function results=verifyNativeMedia(sources,playback,progressFcn,checkOriginals)
 %VERIFYNATIVEMEDIA Hash originals and native copies against their prepared maps.
 % Runs read the maps without hashing video files; this check runs outside a run
 % (verify_aot_ephys_media). One table row per source; issues lists every problem
 % found, and a computed hash stays empty when its file could not be read.
+% checkOriginals=false checks only the copies (no originals on this computer);
+% original_sha256 then stays empty.
 if nargin<3, progressFcn=[]; end
+if nargin<4, checkOriginals=true; end
 sources=string(sources); sources=sources(:);
 folder=ephys.nativeMediaRoot(playback);
 count=numel(sources);
@@ -33,7 +36,9 @@ for k=1:count
         end
         if ~isstruct(recorded) || ~isscalar(recorded), recorded=struct(); end
     end
-    if ~isfile(sources(k))
+    if ~checkOriginals
+        % Not checked: the original's state stays unknown.
+    elseif ~isfile(sources(k))
         found(end+1)="original_missing"; %#ok<AGROW>
     else
         original_sha256(k)=string(ephys.sha256(sources(k)));

@@ -4,10 +4,12 @@ function inventory = mediaInventory(config)
 % Native videos are not hashed here (sha256 stays empty); verify_aot_ephys_media
 % checks them against their maps outside a run. Pictures are small, and the
 % legacy frames backend keys its decode cache by hash, so both are still hashed.
+% Native runs do not need the original videos; original_present records
+% whether each one was found under paths.video_root.
 names = unique(config.schedule(config.schedule~="blank"),'stable');
 native = config.task_kind == "video" && string(config.playback.backend) == "native";
 inventory = repmat(struct('name',"",'path',"",'kind',"", ...
-    'condition',"",'size_bytes',NaN,'sha256',"", ...
+    'condition',"",'original_present',false,'size_bytes',NaN,'sha256',"", ...
     'duration_s',NaN,'fps',NaN,'width_px',NaN,'height_px',NaN, ...
     'source_pts_s',[],'display_rect_px',[]), ...
     numel(names),1);
@@ -30,11 +32,15 @@ for i = 1:numel(names)
         inventory(i).width_px = info(1).Width;
         inventory(i).height_px = info(1).Height;
     end
-    file = dir(filename);
     inventory(i).name = name;
     inventory(i).path = filename;
     inventory(i).condition = ephys.condition(name);
-    inventory(i).size_bytes = file.bytes;
+    % Native runs may lack the original; its size then stays unknown (NaN).
+    inventory(i).original_present = isfile(filename);
+    if inventory(i).original_present
+        file = dir(filename);
+        inventory(i).size_bytes = file.bytes;
+    end
     if ~native
         inventory(i).sha256 = string(ephys.sha256(filename));
     end

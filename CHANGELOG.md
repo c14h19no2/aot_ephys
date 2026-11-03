@@ -1,5 +1,17 @@
 # Changes
 
+## 2026-11-03 — Originals optional on a run computer
+
+- Native runs play only the prepared copies, so they no longer require the
+  original videos: `paths.video_root` (and `paths.practice_video_root`) may
+  be empty or lack files. The manifest records `media[].original_present`;
+  the size of a missing original stays unknown. The frames backend still
+  needs the originals.
+- Without an original folder, `verify_aot_ephys_media` for a schedule or
+  `('Task','practice')` checks the copies only and says so.
+  `prepare_aot_ephys_native_media` stops before converting if any original
+  is missing.
+
 ## 2026-11-03 — Practice task
 
 - New task `practice` (`'Task','practice'`, or Task practice in the dialog,
