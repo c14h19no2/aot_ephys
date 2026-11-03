@@ -23,6 +23,12 @@ manifest 的 `native_trials` 保存每次呈现的解码 PTS、推定源帧顺�
 运行 `verify_aot_ephys_media`（见 [运行](running.md)）。实验期间应保持素材目录不变。
 运行只读取播放副本，原视频可以不在本机：`media[].original_present` 记录原视频是否在
 `paths.video_root` 中找到；不在时 `size_bytes` 为空（未知）。
+
+记忆任务的 manifest 另有 `memory_performance`：呈现与作答图片数、是／否次数、`hits`、`misses`、
+`false_alarms`、`correct_rejections`、`accuracy`、`hit_rate`、`false_alarm_rate`、`d_prime`
+（对数线性校正）、`median_rt_s`，以及答案来源 `answer_source`（`session_video_schedules`、
+`answer_file` 或 `none`）。未作答或没有答案的图片不计分，相应数值为空（未知）。
+用于生成答案的视频日程列在 resolved config 的 `answer_schedules` 中，并复制到 `sources/`。
 加载界面不计入开头基线；基线在 Space 确认之后独立开始。
 
 `startup_loading_start/end`、`startup_movie_load_start/end` 和 `loading` 阶段 Flip

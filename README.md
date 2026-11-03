@@ -43,6 +43,8 @@ out = run_aot_ephys(1,1,1,'Task','practice');  % 第一次 session 前的练习�
   停止；勾选／传入 Overwrite 时重新记录：当天的旧文件夹改名为 `_replaced-<时分秒>` 保留，更早日期的
   文件夹不变，不删除任何数据。
 - 按键：Space 开始；Q 中止并保存已记录部分，命令行显示 “Run stopped with Q.”，不报错；记忆任务用 J/K。
+- 记忆任务结束后命令行显示成绩：正确率、击中率、虚报率、d′ 和中位反应时。答案按本 session 的视频日程
+  自动生成（本 session 播放过的片段为“见过”），也保存在 manifest 的 `memory_performance` 中。
 
 详细说明：[运行](docs/running.md)、[输入参数](docs/run_arguments.md)、[配置参数](docs/configuration.md)、
 [输出与 QC](docs/log_format.md)。

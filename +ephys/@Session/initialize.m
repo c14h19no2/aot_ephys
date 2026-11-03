@@ -29,10 +29,13 @@ function initialize(obj,config,provenance,runId,backend)
     end
     obj.Triggers = ephys.TriggerOutput(config.markers,backend,maxMarkers);
     obj.Eye = ephys.EyeLinkAdapter(config);
-    if config.task_kind == "memory"
+    % The answer key is built here, before the display opens.
+    obj.Answers = containers.Map('KeyType','char','ValueType','char');
+    if config.task_kind == "memory" && strlength(config.answer_path) > 0
         obj.Answers = ephys.loadAnswers(config.answer_path,config.schedule);
-    else
-        obj.Answers = containers.Map('KeyType','char','ValueType','char');
+    elseif config.task_kind == "memory" && isfield(config,'answer_schedules') && ...
+            ~isempty(config.answer_schedules)
+        obj.Answers = ephys.memoryAnswerKey(config.answer_schedules,config.schedule);
     end
     if isfield(config,'run_output')
         % Acquisition runs are grouped by collection date.

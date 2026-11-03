@@ -1,5 +1,18 @@
 # Changes
 
+## 2026-11-03 — Memory performance after the run
+
+- A memory run now prints the participant's performance when it ends (also
+  after Q): pictures shown and answered, yes/no counts, accuracy, hits, false
+  alarms, d' (log-linear correction) and median RT. The values are saved in
+  the manifest as `memory_performance`.
+- Saved memory schedules are scored without an answer file: a picture is
+  "seen" (Y) when its clip was in one of that session's saved video
+  schedules. This reproduces all 72 archived answer files. The video
+  schedules used are listed in the resolved config (`answer_schedules`) and
+  copied with the run's sources. An explicit `'Answers'` TSV still takes
+  precedence; a custom schedule without one stays unscored.
+
 ## 2026-11-03 — Originals optional on a run computer
 
 - Native runs play only the prepared copies, so they no longer require the

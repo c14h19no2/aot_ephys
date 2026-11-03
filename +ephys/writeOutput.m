@@ -179,6 +179,17 @@ manifest.refresh_guard = ephys.refreshGuard();
 if isprop(session,'RefreshGuard') || (isstruct(session) && isfield(session,'RefreshGuard'))
     manifest.refresh_guard = refreshGuardMetrics(session.RefreshGuard,flips);
 end
+memoryPerformance=[];
+if session.Config.task_kind=="memory"
+    try
+        memoryPerformance=ephys.memoryPerformance(events,session.Config);
+        manifest.memory_performance=memoryPerformance;
+    catch cause
+        manifest.memory_performance=struct('status',"failed", ...
+            'error_id',string(cause.identifier),'error',string(cause.message));
+        warning('ephys:MemoryPerformance','Logs saved; memory scoring failed: %s',cause.message);
+    end
+end
 manifestPath=fullfile(folder,[stem '_manifest.json']);
 manifest.trigger_offset_report=struct('status',"pending");
 % Persist the complete data before invoking MATLAB graphics or PDF export.
@@ -202,6 +213,7 @@ catch cause
         'Logs saved; could not update offset report metadata: %s',cause.message);
 end
 if ~isempty(offsetSummary), ephys.printTriggerOffsetSummary(offsetSummary); end
+if ~isempty(memoryPerformance), ephys.printMemoryPerformance(memoryPerformance); end
 end
 
 function guard = refreshGuardMetrics(guard,flips)

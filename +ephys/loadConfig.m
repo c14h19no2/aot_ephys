@@ -57,6 +57,10 @@ config.schedule_path = string(schedulePath);
 config.site_path = string(sitePath);
 config.site_selection_path = string(selectionPath);
 config.answer_path = string(answerPath);
+% Memory answers: an explicit Y/N file, else the session's video schedules
+% for a saved memory schedule, else none (accuracy stays unknown).
+config.answer_source = "none";
+config.answer_schedules = strings(0,1);
 if debugMode && strlength(string(config.paths.output_root)) == 0
     config.paths.output_root = fullfile(root,'outputs','ephys_debug');
 end
@@ -77,6 +81,14 @@ elseif string(taskKind) == "memory"
             'Memory schedule movie_files must be empty.');
     end
     config.schedule = ephys.validatePictureSchedule(stim.picture_files);
+    if strlength(config.answer_path) > 0
+        config.answer_source = "answer_file";
+    else
+        config.answer_schedules = ephys.memoryAnswerSchedules(schedulePath);
+        if ~isempty(config.answer_schedules)
+            config.answer_source = "session_video_schedules";
+        end
+    end
 else
     error('ephys:TaskKind','Task must be video, memory or practice.');
 end
@@ -85,6 +97,10 @@ files{end+1} = char(schedulePath);
 if strlength(string(answerPath)) > 0
     assert(isfile(answerPath),'ephys:AnswerFile','Missing answer file.');
     files{end+1} = char(answerPath);
+end
+% Keep the video schedules that define the answers with the run's sources.
+for k = 1:numel(config.answer_schedules)
+    files{end+1} = char(config.answer_schedules(k)); %#ok<AGROW>
 end
 % Preserve the exact pulse assets alongside the configuration and schedule.
 waves=ephys.loadTriggerWaveforms(config.markers);

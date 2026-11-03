@@ -17,7 +17,7 @@ out = run_aot_ephys(sub,ses,run[,recordingNumber],'Name',value,...);
 | `'Site'` | `config/active_site.yml` 的 `site_file` | 临时覆盖默认选择，指定另一份 site YAML。 |
 | `'Schedule'` | 自动选择 | 自定义有序日程 YAML；日常运行无需自己构建日程变量。 |
 | `'SubjectMap'` | `config/subjects.local.yml` | 被试标签到日程编号的对应表；见下文。 |
-| `'Answers'` | `''` | 与记忆日程匹配的答案 TSV；未提供时不计算正确率。 |
+| `'Answers'` | `''` | 与记忆日程匹配的答案 TSV（图片名 + Y/N）。未提供时，保存的记忆日程按本 session 的视频日程自动生成答案：本 session 视频 run 中播放过的片段为 Y（见过），其余为 N；自定义日程无答案时不计算正确率。 |
 | `'Debug'` | `false` | 加载短 trial／800 × 600 窗口配置，输出名称加 `_debug`。 |
 | `'DebugSkipSyncTests'` | `false` | 仅限 Debug；跳过 PTB 同步检查，使用配置的刷新间隔。 |
 | `'DebugSimulatedInputOnly'` | `false` | 仅限 Debug；自动继续指导语并模拟记忆响应，不记录参与者键盘输入。 |

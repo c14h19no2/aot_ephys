@@ -165,7 +165,29 @@ waveform. Q before Space emits no run-boundary waveform. Q is not an error:
 `run_aot_ephys` prints a short banner ("Run stopped with Q.") and returns the
 output folder, with status
 `"aborted"` as its optional second output. J/K are the memory
-yes/no keys; accuracy remains unknown without an answer file.
+yes/no keys.
+
+After a memory run (also one stopped with Q), the terminal shows the
+participant's performance, for example:
+
+```text
+==============================================================================
+ MEMORY PERFORMANCE
+==============================================================================
+Memory: 360 pictures shown, 360 answered (yes 175, no 185); median RT 0.84 s.
+Accuracy 81.4% (293/360). Hits 152/180 (84.4%), false alarms 26/180 (14.4%), d' 2.07.
+Answer key: "seen" = clip shown in this session's 10 video runs (saved schedules).
+==============================================================================
+```
+
+A picture is "seen" (Y) when its clip was in one of that session's saved
+video schedules, `config/runs/main/…_sub_XX_ses_YY_run_*.yml`; clips from
+earlier sessions count as not seen. This reproduces every archived answer
+file. An `'Answers'` TSV, if given, is used instead; a custom memory schedule
+without one is not scored ("Accuracy unknown"). Only answered pictures are
+scored, and d' uses the log-linear correction. The same values are saved in
+the manifest as `memory_performance`, and each response's expected answer and
+correctness in the events TSV.
 
 Device initialization, initial video loading and the Space wait run at normal
 scheduling priority. After Space, a non-Debug run raises priority before the
