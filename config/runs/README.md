@@ -8,6 +8,7 @@ The experiment resolves its default schedules inside this project:
 | `memory_main_complete/` | Default memory schedules, 360 pictures per schedule | 132 YAML |
 | `memory_main/` | Optional older memory schedules, 180 pictures per schedule | 72 YAML |
 | `memory_main/answers/` | Answer keys for the optional older memory schedules | 72 TSV |
+| `practice/` | Practice video schedule shared by all subjects (`'Task','practice'`); clips from `paths.practice_video_root` | 1 YAML |
 
 Participant filenames retain the original format:
 `experiment_settings_sub_XX_ses_YY_run_ZZ.yml`.

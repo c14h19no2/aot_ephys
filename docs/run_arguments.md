@@ -12,7 +12,7 @@ out = run_aot_ephys(sub,ses,run[,recordingNumber],'Name',value,...);
 | `sub` | 必填 | 被试标签。数字补零到 3 位（`3` → `sub-003`，`17` → `sub-017`）；字母数字名称原样保留（`'patientname'` → `sub-patientname`）；可带 `sub-` 前缀。只允许字母和数字（不能含下划线或空格：下划线用于分隔输出名称的各部分，如 `patient_name` 无效）。 |
 | `ses` / `run` | 必填 | 正整数，与被试的日程编号一起选择保存的日程并命名输出。 |
 | 第 4 个 `recordingNumber` | 省略 | 正整数，输出追加 `_record-XX`；仅区分重复记录，`[]` 等同省略。 |
-| `'Task'` | `'video'` | `'video'` 或 `'memory'`。 |
+| `'Task'` | `'video'` | `'video'`、`'memory'` 或 `'practice'`。`'practice'` 为第一次 session 前的练习：与视频任务完全相同的呈现，但所有被试共用 `config/runs/practice/practice_videos.yml`（不需要日程编号或对应表），视频来自 `paths.practice_video_root`，播放副本来自单独的 `playback.practice_native_media_root`，输出名为 `…_task-practice`。run 请用 1。 |
 | `'Overwrite'` | `false` | 同名输出已存在（当天或更早日期）时仍重新记录。当天的旧文件夹改名为 `<名称>_replaced-<时分秒>` 保留；更早日期的文件夹保持不变，新记录写入当天文件夹。不删除任何数据。为 `false` 时已有输出会在开始前报错。 |
 | `'Site'` | `config/active_site.yml` 的 `site_file` | 临时覆盖默认选择，指定另一份 site YAML。 |
 | `'Schedule'` | 自动选择 | 自定义有序日程 YAML；日常运行无需自己构建日程变量。 |
@@ -48,9 +48,9 @@ subjects:
 
 ### 输入窗口
 
-不带参数调用 `run_aot_ephys()` 时，窗口依次询问被试、session、run、任务（video／memory）和
+不带参数调用 `run_aot_ephys()` 时，窗口依次询问被试、session、run、任务（video／memory／practice）和
 Overwrite。窗口下方实时显示输出路径、所用日程及其来源；输入无效、日程不存在，或当天或更早日期已有
 同名输出（未勾选 Overwrite）时 Start 不可用。勾选 Overwrite 只对当前显示的 run 有效，之后改变被试、
-session、run 或任务会自动取消勾选。记忆日程每个 session 只有 run 1，因此任务选 memory 时 Run 固定为 1
-并变灰，切回 video 时恢复原来的 run。取消返回空字符串。窗口在开始前关闭，不会与实验窗口重叠。
+session、run 或任务会自动取消勾选。记忆日程每个 session 只有 run 1、练习只有一个共用日程，因此任务选
+memory 或 practice 时 Run 固定为 1 并变灰，切回 video 时恢复原来的 run。取消返回空字符串。窗口在开始前关闭，不会与实验窗口重叠。
 需要记录编号、Debug 或其他选项时，请使用命令行形式。

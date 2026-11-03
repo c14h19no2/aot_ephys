@@ -1,0 +1,32 @@
+# Practice task, shared by all subjects: run before the first session with
+# run_aot_ephys(sub, ses, 1, 'Task', 'practice') or Task practice in the dialog.
+# Sixteen clips from paths.practice_video_root (1280 x 720, 60 fps, 2.5 s),
+# each shown once, plus 3 blanks: 19 trials. Eight forward (S_) and eight
+# backward (R_S_), each clip in one direction only. At most two videos in a
+# row share a direction. Blanks are never first or last and are at least
+# 5 trials apart.
+# Forward: spillway, train, runners, rabbits, water slide, frying rings,
+# dashcam with trailer, woman by the sea.
+# Backward: turtle, tractor, shovelling, pumpkin carving, hydraulic press,
+# scooter jump, watermelon and ring, car leaving a tunnel.
+stimuli:
+  movie_files:
+  - R_S_yt-ePxv64kEqa0_177.mp4
+  - S_ILSVRC2015_train_00460000.mp4
+  - S_yt-WTxvvlP8xnw_113.mp4
+  - blank
+  - R_S_yt-Fdv-V--QlR0_117.mp4
+  - R_S_yt-XUnZ7FbBtvk_162.mp4
+  - S_yt-c5KPuyzO-50_4.mp4
+  - S_yt-5Mnpi51EFok_77.mp4
+  - R_S_yt-b29VtKvlnWE_430.mp4
+  - S_yt-th8otDDjMR8_3.mp4
+  - S_yt-LZS1RrEtTeQ_136.mp4
+  - blank
+  - R_S_yt-78k6vUHDWAI_206.mp4
+  - S_ILSVRC2015_train_00378000.mp4
+  - R_S_ahUa35lQM6E_44.mp4
+  - R_S_ILSVRC2015_train_00001012.mp4
+  - S_wc-1MzpHfRq1MUK_32.mp4
+  - blank
+  - R_S_yt-sZBe-xmTySc_8.mp4

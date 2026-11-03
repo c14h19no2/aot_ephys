@@ -32,6 +32,7 @@ out = run_aot_ephys(1,1,8);                 % sub-001_ses-01_run-08_task-video
 out = run_aot_ephys(1,1,8,2);               % 同一日程的另一次记录（_record-02）
 out = run_aot_ephys('patientname',1,8);     % 名称被试，日程编号见 subjects.local.yml
 out = run_aot_ephys(1,1,1,'Task','memory');
+out = run_aot_ephys(1,1,1,'Task','practice');  % 第一次 session 前的练习，所有被试共用同一日程
 ```
 
 - Site：窗口第一行列出 `config/site.*.yml`，默认 `active_site.yml` 中的 site，并显示屏幕尺寸、分辨率、

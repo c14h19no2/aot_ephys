@@ -1,5 +1,8 @@
 function [config, provenance] = loadConfig(taskKind, schedulePath, sitePath, debugMode, answerPath, selectionPath)
 %LOADCONFIG Strict experiment configuration and exact saved schedule order.
+% taskKind is "video", "memory" or "practice"; practice loads as task_kind
+% "video" with paths.video_root set to paths.practice_video_root and
+% playback.native_media_root set to playback.practice_native_media_root.
 if nargin < 4, debugMode = false; end
 if nargin < 5, answerPath = ""; end
 if nargin < 6, selectionPath = ""; end
@@ -34,6 +37,17 @@ if debugMode
 end
 config.debug = logical(debugMode);
 config.debug_simulated_input_only = false;
+if string(taskKind) == "practice"
+    % The practice task is the video task with the shared practice schedule
+    % and its own clip and copy folders, kept apart from the main videos;
+    % everything else is presented the same way.
+    taskKind = "video";
+    config.paths.video_root = config.paths.practice_video_root;
+    if string(config.playback.backend) == "native"
+        ephys.nativeMediaRoot(config.playback,'practice_native_media_root');
+    end
+    config.playback.native_media_root = config.playback.practice_native_media_root;
+end
 config.task_kind = string(taskKind);
 config.schedule_path = string(schedulePath);
 config.site_path = string(sitePath);
@@ -60,7 +74,7 @@ elseif string(taskKind) == "memory"
     end
     config.schedule = ephys.validatePictureSchedule(stim.picture_files);
 else
-    error('ephys:TaskKind','Task must be video or memory.');
+    error('ephys:TaskKind','Task must be video, memory or practice.');
 end
 ephys.validateConfig(config);
 files{end+1} = char(schedulePath);

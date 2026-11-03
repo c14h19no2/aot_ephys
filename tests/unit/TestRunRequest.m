@@ -126,6 +126,7 @@ classdef TestRunRequest < matlab.unittest.TestCase
             % JSON stores text as char; compare it as strings.
             expected = r.identity;
             expected.subject = char(expected.subject);
+            expected.task = char(expected.task);
             expected.schedule_set_source = char(expected.schedule_set_source);
             tc.verifyEqual(manifest.run_identity,expected);
             tc.verifyEqual(resolved.run_identity,expected);

@@ -131,6 +131,9 @@ eyelink:
 paths:
   video_root: ''
   picture_root: ''
+  # Folder with the practice clips (S_ forward, R_S_ backward) used by
+  # config/runs/practice/practice_videos.yml. Set it in the site file.
+  practice_video_root: ''
   output_root: ''
 playback:
   backend: native
@@ -141,13 +144,19 @@ playback:
   # Required for native video playback/preparation. Set the folder in the site YAML.
   # Empty, null or none values cause an error; no implicit directory is used.
   native_media_root: null
+  # Native copies of the practice clips, kept apart from native_media_root.
+  # Required for the practice task only; set it in the site YAML.
+  practice_native_media_root: null
   native_buffer_s: 3
   # Hard timeout only when no drawable first frame is available.
   # Missing a fixation/loading deadline is recorded and does not abort.
   native_prepare_timeout_s: 5
   native_disable_hw_decode: false
   startup_preload_movies: 2
-  max_texture_bytes: 1073741824
+  # Decoded-frame budget (RGBA bytes) for the current and next movie: 1.25 GiB.
+  # Two 2.5 s 1280x720 60 fps practice clips need 1.11 GB; two main 1920x1080
+  # 24 fps clips 1.01 GB.
+  max_texture_bytes: 1342177280
 logging:
   # Preflight allocation ceilings; runtime buffers grow if their estimate is exceeded.
   max_flips: 250000

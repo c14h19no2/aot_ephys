@@ -117,6 +117,7 @@ protocol:
 | `display.steady_flip` | 视频任务的 onset 呈现方式，默认 `true`：在每个带 WAV 的 onset 之前逐帧刷新注视画面直到 onset 所在刷新，使每个 onset 前显示管线状态相同。site 中设为 `false` 时改为首帧提前绘制并保持到定时 Flip。两种模式的比较方法见 [trigger_timing.md](trigger_timing.md#10-held-and-steady-onset-modes)。 |
 | `input_device_index` | PTB 键盘编号；`-1` 使用默认设备。 |
 | `paths.video_root` / `picture_root` | 日程中原始 MP4／PNG 所在目录。 |
+| `paths.practice_video_root` | 练习视频原文件目录（`S_` 正向、`R_S_` 反向），供 `'Task','practice'` 使用；其播放副本放在单独的 `playback.practice_native_media_root`。 |
 | `paths.output_root` | 每次记录的输出父目录；`run_aot_ephys` 在其下按采集日期 `yyyy-mm-dd` 建子文件夹。 |
 | `stimulus.fixation.surround_diameter_deg` / `surround_fringe` | 灰色圆形底衬的外径（视角度，默认 0.18270°）及边缘比例（默认 0.3）：半径内 70% 不透明，外 30% 按升余弦（PsychoPy `raisedCosine`）渐变到透明。在灰色背景上不可见，叠在视频上为柔边灰盘。 |
 | `stimulus.fixation.dot_diameter_deg` / `outline_width_deg` | 黑色中心点直径（默认 0.03654°）及可选白色描边宽度（以点的边缘为中心；默认 `0`，不画描边；原说明为 0.00788°）。 |
@@ -131,11 +132,12 @@ protocol:
 | `playback.backend` | 默认 `native`：独立 PTB 句柄与滚动提前准备；`frames`：保留旧的完整 RGB 解码和纹理缓存播放器。 |
 | `playback.python_path` | 离线准备所用 Python；空值使用 `python3`。仅需 Python 标准库。 |
 | `playback.native_media_root` | 必须明确填写的原生播放副本目录；例如 `C:\path\to\aot_movie\derived_media\native`。缺失、空值、`null` 或 `none` 会报错。 |
+| `playback.practice_native_media_root` | 练习视频播放副本的单独目录，与 `native_media_root` 分开；例如 `C:\path\to\aot_movie\derived_media\practice_native`。只有练习任务需要，未设置时练习任务及其准备／核对报错，正式视频不受影响。 |
 | `playback.native_buffer_s` | 原生 no-drop 解码缓冲容量，默认 `3 s`，必须覆盖完整视频时段。 |
 | `playback.native_prepare_timeout_s` | 完全取不到可绘制首帧时的等待上限，默认 `5 s`；预注视截止时间仅用于记录加载晚到。 |
 | `playback.native_disable_hw_decode` | 默认 `false`；本机 site 为 `true`，使用 PTB 官方软件视频解码选项。显示和 Flip 仍由 PTB/GPU 执行。 |
 | `playback.startup_preload_movies` | Space 提示前准备的视频句柄数，默认 `2`；原生模式允许 `1` 或 `2`。旧 `frames` 模式按不同文件缓存，`0` 可关闭。 |
-| `playback.max_texture_bytes` | 所有缓存视频合计的估计 RGBA 纹理内存上限，默认 1 GiB；不包括 CPU 数据、窗口等其他开销。 |
+| `playback.max_texture_bytes` | 当前与下一个视频合计的估计 RGBA 解码帧内存上限，默认 1.25 GiB（两段 2.5 s、1280 × 720、60 fps 练习视频需 1.11 GB；两段正式 1920 × 1080、24 fps 视频需 1.01 GB）；不包括 CPU 数据、窗口等其他开销。 |
 | `markers.backend` | 视频使用 `wav`，通过 PsychPortAudio 输出模拟波形；`dummy` 仅供无声软件测试。 |
 | `markers.memory_backend` | 记忆任务当前使用独立的 `dummy`，只保存命名事件，不复用视频 WAV。 |
 | `markers.video_offset_enabled` | 默认 `false`；视频／blank offset 仍记录实际 Flip 时间。 |

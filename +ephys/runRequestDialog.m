@@ -56,7 +56,7 @@ uilabel(grid,'Text','Run');
 runField = uispinner(grid,'Limits',[1 Inf],'Value',1,'RoundFractionalValues','on', ...
     'ValueDisplayFormat','%d','HorizontalAlignment','left','Tag','run');
 uilabel(grid,'Text','Task');
-taskField = uidropdown(grid,'Items',{'video','memory'},'Value','video','Tag','task');
+taskField = uidropdown(grid,'Items',{'video','memory','practice'},'Value','video','Tag','task');
 uilabel(grid,'Text','');
 overwriteField = uicheckbox(grid,'Tag','overwrite', ...
     'Text','Overwrite (record this run again; existing folders are kept)');
@@ -178,11 +178,14 @@ drawnow;
         if startsWith(preview.schedule_set_source,"subject map")
             source = "subject map";
         end
+        scheduleOrigin = preview.schedule_set_source; % e.g. the shared practice schedule
+        if ~isempty(preview.schedule_set)
+            scheduleOrigin = "set "+preview.schedule_set+", "+source;
+        end
         [dateFolder,runName] = fileparts(preview.output_folder);
         [outputRoot,dateName] = fileparts(dateFolder);
         lines = ["Output:  "+fullfile(dateName,runName); "In:  "+outputRoot; ...
-            "Schedule:  "+scheduleName+scheduleExt+"  (set "+preview.schedule_set+ ...
-            ", "+source+")"];
+            "Schedule:  "+scheduleName+scheduleExt+"  ("+scheduleOrigin+")"];
         level = 'note';
         if preview.exists && ~values.overwrite
             lines(end+1) = "This folder already exists today. Change the run, or tick " + ...
@@ -207,9 +210,10 @@ drawnow;
     end
 
     function changeTask()
-        % The memory test has one schedule per session, saved as run 1.
-        if taskField.Value=="memory"
-            videoRun = runField.Value;
+        % The memory test has one schedule per session, saved as run 1, and
+        % the practice task one shared schedule, recorded as run 1.
+        if any(taskField.Value==["memory","practice"])
+            if runField.Enable, videoRun = runField.Value; end
             runField.Value = 1;
             runField.Enable = false;
         else

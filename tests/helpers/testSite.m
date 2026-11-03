@@ -11,9 +11,11 @@ if isempty(folder) || ~isfolder(folder)
     root=ephys.projectRoot();
     settings=ephys.readYaml(fullfile(root,'tests','fixtures','site.test.yml'));
     settings.paths=struct('video_root',fullfile(folder,'originals'), ...
-        'picture_root',fullfile(folder,'pictures'),'output_root',fullfile(folder,'outputs'));
-    settings.playback=struct('native_media_root',fullfile(folder,'copies'));
-    for directory=[string(struct2cell(settings.paths));string(settings.playback.native_media_root)]'
+        'picture_root',fullfile(folder,'pictures'), ...
+        'practice_video_root',fullfile(folder,'practice'),'output_root',fullfile(folder,'outputs'));
+    settings.playback=struct('native_media_root',fullfile(folder,'copies'), ...
+        'practice_native_media_root',fullfile(folder,'practice_copies'));
+    for directory=[string(struct2cell(settings.paths));string(struct2cell(settings.playback))]'
         mkdir(directory);
     end
     % File existence is enough for config validation; decoders use their own
@@ -25,8 +27,12 @@ if isempty(folder) || ~isfolder(folder)
         names=[names;string(schedule.stimuli.movie_files(:))]; %#ok<AGROW>
     end
     names=unique(names(names~="blank"));
-    for name=names'
-        fid=fopen(fullfile(settings.paths.video_root,name),'w');
+    practice=ephys.readYaml(fullfile(root,'config','runs','practice','practice_videos.yml'));
+    practiceNames=unique(string(practice.stimuli.movie_files(:)));
+    practiceNames=practiceNames(practiceNames~="blank");
+    files=[fullfile(settings.paths.video_root,names);fullfile(settings.paths.practice_video_root,practiceNames)];
+    for file=files'
+        fid=fopen(file,'w');
         assert(fid>=0,'test:FixtureWrite','Could not create placeholder.');
         fprintf(fid,'configuration fixture, not a playable movie'); fclose(fid);
     end

@@ -31,6 +31,9 @@ Edit `config/site.local.yml` for this computer:
 
 - `paths.video_root`: original movies.
 - `playback.native_media_root`: prepared MP4/JSON pairs.
+- `paths.practice_video_root` and `playback.practice_native_media_root`: the
+  practice clips and their prepared copies, in separate folders, when using
+  the practice task.
 - `paths.output_root`: recordings; each run gets a new directory inside a
   folder named after the collection date (`yyyy-mm-dd`).
 - `paths.picture_root`: memory pictures, when using the memory task.
@@ -71,6 +74,36 @@ It prints each mismatch (`map_missing`, `map_invalid`, `original_missing`,
 `original_changed`, `native_missing`, `native_changed`) and warns if any are
 found; `results = verify_aot_ephys_media(...)` also returns one row per video.
 
+The practice clips (`paths.practice_video_root`) need playback copies too.
+They are kept apart from the main videos: their copies go into their own
+folder, `playback.practice_native_media_root` (for example
+`…\aot_movie\derived_media\practice_native`), never into
+`playback.native_media_root`. Prepare and check only the sixteen clips of the
+practice schedule:
+
+```matlab
+prepare_aot_ephys_native_media('Task','practice');
+verify_aot_ephys_media('Task','practice');
+```
+
+## Practice before the first session
+
+The practice task presents the shared schedule
+`config/runs/practice/practice_videos.yml` exactly like a video run (baselines,
+fixation, triggers and logs): sixteen clips, eight forward (`S_`) and eight
+backward (`R_S_`), each shown once, plus 3 blanks: 19 trials, about 80 s
+after Space. Every subject uses the
+same order, and no schedule set or subject-map entry is needed. Choose Task
+`practice` in the dialog (Run is then fixed at 1), or:
+
+```matlab
+practiceOut = run_aot_ephys(1,1,1,'Task','practice');
+```
+
+The output is named `…_task-practice`, and its manifest records
+`run_identity.task` as `practice`. To use other clips, edit the YAML and
+prepare their playback copies.
+
 ## Start a run
 
 ```matlab
@@ -79,6 +112,7 @@ videoOut = run_aot_ephys(1,1,8);
 videoOut = run_aot_ephys(1,1,8,2);  % Another recording of the same schedule.
 videoOut = run_aot_ephys('patientname',1,8);
 memoryOut = run_aot_ephys(1,1,1,2,'Task','memory');
+practiceOut = run_aot_ephys(1,1,1,'Task','practice');
 ```
 
 Subject, session and run choose the saved schedule. A numeric subject is
@@ -108,9 +142,9 @@ another site, Start writes it to `config/active_site.yml` (comments are kept),
 so this and later runs use it; Cancel changes nothing.
 
 Below that, enter subject, session, run, task and Overwrite as before. The
-memory test has one schedule per session, saved as run 1, so choosing the
-memory task sets Run to 1 and greys it out (switching back to video restores
-the previous run). The dialog shows the output path and schedule while you
+memory test has one schedule per session, saved as run 1, and practice has one
+shared schedule, so choosing the memory or practice task sets Run to 1 and
+greys it out (switching back to video restores the previous run). The dialog shows the output path and schedule while you
 type, and enables Start only for a valid request. Labels appear in folder names and manifests; use
 study codes rather than real names.
 

@@ -2,7 +2,7 @@ function request = resolveRunRequest(subject,sessionNumber,runNumber,varargin)
 %RESOLVERUNREQUEST Select a saved schedule and an optional recording number.
 % Subject is a number (zero-padded to three digits) or a letters-and-digits
 % label; its schedule set comes from ephys.scheduleSet. Session and run select
-% the saved schedule. A fourth positive integer labels a separate output
+% the saved schedule. Task "practice" uses the one shared practice schedule. A fourth positive integer labels a separate output
 % recording; [] is equivalent to omitting it.
 label = ephys.subjectLabel(subject);
 assert(validNumber(sessionNumber) && validNumber(runNumber),'ephys:RunIdentity', ...
@@ -32,14 +32,18 @@ p = parser.Results;
 assert(p.Debug || (~p.DebugSkipSyncTests && ~p.DebugSimulatedInputOnly), ...
     'ephys:DebugOnly','Debug timing/input overrides are forbidden in acquisition.');
 task = string(p.Task);
-assert(isscalar(task) && any(task==["video","memory"]), ...
-    'ephys:TaskKind','Task must be video or memory.');
+assert(isscalar(task) && any(task==["video","memory","practice"]), ...
+    'ephys:TaskKind','Task must be video, memory or practice.');
 root = ephys.projectRoot();
 [sitePath,selectionPath] = ephys.resolveSitePath(p.Site);
 schedulePath = string(p.Schedule);
 setNumber = [];
 setSource = "explicit Schedule";
-if strlength(schedulePath)==0
+if strlength(schedulePath)==0 && task=="practice"
+    % One practice schedule for every subject; no schedule set is needed.
+    schedulePath = string(fullfile(root,'config','runs','practice','practice_videos.yml'));
+    setSource = "shared practice schedule";
+elseif strlength(schedulePath)==0
     [setNumber,setSource] = ephys.scheduleSet(label,p.SubjectMap);
     sourceFolder = "main";
     if task=="memory", sourceFolder = "memory_main_complete"; end
@@ -68,7 +72,7 @@ request = struct('options',p,'task',task,'site_path',string(sitePath), ...
     'site_selection_path',string(selectionPath), ...
     'schedule_path',schedulePath,'run_id',string(stem), ...
     'collection_date',string(datetime('now','Format','yyyy-MM-dd')));
-request.identity = struct('subject',label,'session',sessionNumber, ...
+request.identity = struct('subject',label,'task',task,'session',sessionNumber, ...
     'run',runNumber,'recording_number',recordingNumber, ...
     'schedule_set',setNumber,'schedule_set_source',setSource);
 end

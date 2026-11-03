@@ -4,6 +4,7 @@ function folder=prepare_aot_ephys_native_media(varargin)
 % The default Site is selected in config/active_site.yml.
 % prepare_aot_ephys_native_media('Site',sitePath) prepares all files for that site.
 % prepare_aot_ephys_native_media(sub,ses,run,...) prepares a saved schedule only.
+% prepare_aot_ephys_native_media('Task','practice') prepares the practice clips.
 request=ephys.resolveNativePreparation(varargin{:});
 playback=ephys.resolveVideoTools(request.playback);
 folder=ephys.nativeMediaRoot(playback);

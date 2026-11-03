@@ -3,6 +3,8 @@ protocol:
 playback:
   # Set an explicit native-copy directory before running the video task.
   native_media_root: null
+  # Separate native-copy directory for the practice clips (practice task only).
+  practice_native_media_root: null
 display:
   screen_index: 1
   resolution_px: [1920, 1080]
@@ -15,6 +17,7 @@ display:
 paths:
   video_root: ''
   picture_root: ''
+  practice_video_root: ''
   output_root: ''
 markers:
   wav:

@@ -1,5 +1,29 @@
 # Changes
 
+## 2026-11-03 — Practice task
+
+- New task `practice` (`'Task','practice'`, or Task practice in the dialog,
+  which then fixes Run at 1). It is the video task with one schedule shared by
+  all subjects, `config/runs/practice/practice_videos.yml`: sixteen clips from
+  the practice set, eight forward (`S_`) and eight backward (`R_S_`), each clip
+  in one direction only and shown once, plus 3 blanks, 19 trials. At most two
+  videos in a row share a direction, and blanks are never first or last.
+  It needs no schedule set or subject-map entry. Output is `…_task-practice`; `run_identity.task`
+  records the task for every run.
+- New site settings `paths.practice_video_root` for the practice clips and
+  `playback.practice_native_media_root` for their copies, both kept apart from
+  the main video folders; only the practice task needs them.
+  `prepare_aot_ephys_native_media('Task','practice')` and
+  `verify_aot_ephys_media('Task','practice')` handle just those sixteen clips,
+  in the practice copy folder.
+- The "native map missing" error names the folder it looked in.
+- `playback.max_texture_bytes` is now 1.25 GiB (was 1 GiB), so the next
+  1280 x 720, 60 fps practice clip can be prepared during the current one
+  (two need 1.11 GB). Main videos are unaffected (two need 1.01 GB).
+- A run that stops while loading, before audio and EyeLink are set up (for
+  example with missing playback copies), no longer prints three "Dot indexing
+  is not supported" cleanup warnings before its error.
+
 ## 2026-11-01 — Memory task fixes Run at 1 in the dialog
 
 - All memory schedules are saved as run 1 of their session, so choosing the

@@ -6,6 +6,7 @@ function varargout=verify_aot_ephys_media(varargin)
 % verify_aot_ephys_media() checks every MP4 in paths.video_root of the active site.
 % verify_aot_ephys_media('Site',sitePath) checks every MP4 for that site.
 % verify_aot_ephys_media(sub,ses,run,...) checks the videos of one saved schedule.
+% verify_aot_ephys_media('Task','practice') checks the practice clips.
 % results=verify_aot_ephys_media(...) also returns one table row per video.
 request=ephys.resolveNativePreparation(varargin{:});
 count=numel(request.sources);
