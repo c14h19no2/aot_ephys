@@ -6,7 +6,8 @@ function stopPresentation(obj)
     end
     obj.PresentationStopped = true;
     % Cancel before slow movie/display cleanup can pass a future onset.
-    if ~obj.RunEndHandled
+    % Triggers is empty when construction failed before creating it.
+    if ~obj.RunEndHandled && ~isempty(obj.Triggers)
         try
             obj.Triggers.cancelPending();
         catch cause

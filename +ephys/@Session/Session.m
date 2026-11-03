@@ -222,15 +222,20 @@ classdef Session < handle
                     warning('ephys:PartialOutput','%s',cause.message);
                 end
             end
-            try
-                obj.Eye.close();
-            catch cause
-                warning('ephys:EyeCleanup','%s',cause.message);
+            % Eye and Triggers are empty when construction failed early.
+            if ~isempty(obj.Eye)
+                try
+                    obj.Eye.close();
+                catch cause
+                    warning('ephys:EyeCleanup','%s',cause.message);
+                end
             end
-            try
-                obj.Triggers.close();
-            catch cause
-                warning('ephys:TriggerCleanup','%s',cause.message);
+            if ~isempty(obj.Triggers)
+                try
+                    obj.Triggers.close();
+                catch cause
+                    warning('ephys:TriggerCleanup','%s',cause.message);
+                end
             end
         end
 

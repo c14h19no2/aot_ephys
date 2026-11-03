@@ -19,15 +19,7 @@ classdef TestNativeRuntime < matlab.unittest.TestCase
 
         function sessionConstructorSkipsToolResolution(tc)
             [fixture,~,folder,guard]=TestNativeRuntime.fixture(); %#ok<ASGLU>
-            root=ephys.projectRoot();
-            [c,p]=ephys.loadConfig("video",fullfile(root,'config','runs','debug_blank.yml'), ...
-                testSite(),false,"");
-            c.schedule=fixture.schedule;
-            c.paths.video_root=fixture.paths.video_root;
-            c.paths.output_root=fullfile(folder,'output');
-            c.playback=ephys.mergeConfig(c.playback,fixture.playback);
-            c.protocol.video_duration_s=.12;
-            ephys.validateConfig(c);
+            [c,p]=TestNativeRuntime.sessionConfig(fixture,folder);
             job=ephys.Session(c,p,"native_runtime",ephys.DummyTriggerBackend());
             cleanup=onCleanup(@() job.close());
             tc.verifyEqual(job.Config.playback.ffmpeg_path,fixture.playback.ffmpeg_path);
@@ -36,6 +28,17 @@ classdef TestNativeRuntime < matlab.unittest.TestCase
             tc.verifyTrue(isfile(fullfile(job.OutputDir,'frame_maps','test_fw.json')));
             job.stopPresentation();
             job.finish("aborted","Constructor-only dependency test; no presentation");
+        end
+
+        function missingMediaStopsSessionWithoutCleanupWarnings(tc)
+            [fixture,~,folder,guard]=TestNativeRuntime.fixture(); %#ok<ASGLU>
+            [c,p]=TestNativeRuntime.sessionConfig(fixture,folder);
+            delete(fullfile(c.playback.native_media_root,'test_fw.json'));
+            % The half-built Session is cleaned up before the error reaches the caller.
+            identifier=tc.verifyWarningFree(@() TestNativeRuntime.errorIdentifier( ...
+                @() ephys.Session(c,p,"native_runtime",ephys.DummyTriggerBackend())));
+            tc.verifyEqual(identifier,'ephys:NativeMediaMissing');
+            tc.verifyFalse(isfolder(c.paths.output_root));
         end
 
         function missingMediaFailsButVideoBytesAreNotHashed(tc)
@@ -114,6 +117,27 @@ classdef TestNativeRuntime < matlab.unittest.TestCase
                 'display',struct('resolution_px',{{1440,900}}), ...
                 'stimulus',struct('movie_scale',1));
             TestNativeRuntime.writeMap(c,map);
+        end
+
+        function [c,p]=sessionConfig(fixture,folder)
+            root=ephys.projectRoot();
+            [c,p]=ephys.loadConfig("video",fullfile(root,'config','runs','debug_blank.yml'), ...
+                testSite(),false,"");
+            c.schedule=fixture.schedule;
+            c.paths.video_root=fixture.paths.video_root;
+            c.paths.output_root=fullfile(folder,'output');
+            c.playback=ephys.mergeConfig(c.playback,fixture.playback);
+            c.protocol.video_duration_s=.12;
+            ephys.validateConfig(c);
+        end
+
+        function identifier=errorIdentifier(fn)
+            identifier='';
+            try
+                fn();
+            catch cause
+                identifier=cause.identifier;
+            end
         end
 
         function writeMap(c,map)
